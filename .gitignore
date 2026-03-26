@@ -21,3 +21,7 @@ npm-debug.log*
 # Build outputs
 dist/
 build/
+
+
+Backend_Readme.md
+SUPABASE_SETUP_GUIDE.md
