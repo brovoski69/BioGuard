@@ -1,0 +1,19 @@
+{
+  "name": "bioguard-backend",
+  "version": "1.0.0",
+  "description": "BioGuard - Virtual Joint Stress Simulator Backend",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/connection-test.js",
+    "test:full": "node test/full-test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {},
+  "keywords": ["bioguard", "supabase", "biomechanics", "health"],
+  "author": "",
+  "license": "ISC"
+}
