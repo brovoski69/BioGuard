@@ -43,7 +43,11 @@ class AuthManager {
 
             // Create user profile after successful signup
             if (data.user) {
-                const profileResult = await this.profileManager.createProfile(data.user.id, profileData);
+                const profileResult = await this.profileManager.createProfile(
+                    data.user.id, 
+                    profileData,
+                    email  // Pass email for profile storage
+                );
                 if (profileResult.error) {
                     console.error('Profile creation error:', profileResult.error);
                 }
@@ -84,14 +88,20 @@ class AuthManager {
 
     /**
      * Sign in with Google OAuth
+     * @param {string} redirectUrl - Optional custom redirect URL
      * @returns {Promise<{error: Error|null}>}
      */
-    async signInWithGoogle() {
+    async signInWithGoogle(redirectUrl = null) {
         try {
+            // Use provided URL, or try to get from environment, or fallback to window.location
+            const callbackUrl = redirectUrl || 
+                (typeof process !== 'undefined' && process.env?.AUTH_REDIRECT_URL) ||
+                (typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : null);
+
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/auth/callback'
+                    redirectTo: callbackUrl
                 }
             });
 
@@ -164,16 +174,21 @@ class AuthManager {
     /**
      * Send password reset email
      * @param {string} email - User email
+     * @param {string} redirectUrl - Optional custom redirect URL
      * @returns {Promise<{error: Error|null}>}
      */
-    async resetPassword(email) {
+    async resetPassword(email, redirectUrl = null) {
         try {
             if (!email) {
                 throw new Error('Email is required');
             }
 
+            const callbackUrl = redirectUrl ||
+                (typeof process !== 'undefined' && process.env?.AUTH_REDIRECT_URL) ||
+                (typeof window !== 'undefined' ? window.location.origin + '/reset-password' : null);
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password'
+                redirectTo: callbackUrl
             });
 
             if (error) throw error;

@@ -16,6 +16,14 @@ export { default as ReportManager } from './classes/ReportManager.js';
 export { default as PhysicsEngine } from './classes/PhysicsEngine.js';
 export { default as ScenarioManager } from './classes/ScenarioManager.js';
 
+// Import classes for BioGuard main class (ES module compatible)
+import AuthManager from './classes/AuthManager.js';
+import ProfileManager from './classes/ProfileManager.js';
+import SessionManager from './classes/SessionManager.js';
+import ReportManager from './classes/ReportManager.js';
+import PhysicsEngine from './classes/PhysicsEngine.js';
+import ScenarioManager from './classes/ScenarioManager.js';
+
 /**
  * BioGuard - Main Application Class
  * Provides a unified interface for all backend operations
@@ -35,7 +43,6 @@ class BioGuard {
     // Getters for lazy initialization
     get auth() {
         if (!this._authManager) {
-            const AuthManager = require('./classes/AuthManager.js').default;
             this._authManager = new AuthManager();
         }
         return this._authManager;
@@ -43,7 +50,6 @@ class BioGuard {
 
     get profiles() {
         if (!this._profileManager) {
-            const ProfileManager = require('./classes/ProfileManager.js').default;
             this._profileManager = new ProfileManager();
         }
         return this._profileManager;
@@ -51,7 +57,6 @@ class BioGuard {
 
     get sessions() {
         if (!this._sessionManager) {
-            const SessionManager = require('./classes/SessionManager.js').default;
             this._sessionManager = new SessionManager();
         }
         return this._sessionManager;
@@ -59,7 +64,6 @@ class BioGuard {
 
     get reports() {
         if (!this._reportManager) {
-            const ReportManager = require('./classes/ReportManager.js').default;
             this._reportManager = new ReportManager();
         }
         return this._reportManager;
@@ -67,7 +71,6 @@ class BioGuard {
 
     get scenarios() {
         if (!this._scenarioManager) {
-            const ScenarioManager = require('./classes/ScenarioManager.js').default;
             this._scenarioManager = new ScenarioManager();
         }
         return this._scenarioManager;
@@ -79,7 +82,6 @@ class BioGuard {
      * @returns {PhysicsEngine}
      */
     initPhysicsEngine(profileData) {
-        const PhysicsEngine = require('./classes/PhysicsEngine.js').default;
         this._physicsEngine = new PhysicsEngine(profileData);
         this._currentProfile = profileData;
         return this._physicsEngine;

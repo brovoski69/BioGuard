@@ -5,7 +5,32 @@
 
 import { supabase } from './SupabaseClient.js';
 
+// Valid health conditions that the system recognizes
+const VALID_HEALTH_CONDITIONS = [
+    'arthritis',
+    'osteoporosis', 
+    'herniated_disc',
+    'knee_injury',
+    'hip_replacement',
+    'obesity',
+    'scoliosis',
+    'sciatica',
+    'carpal_tunnel',
+    'tendonitis',
+    'bursitis',
+    'fibromyalgia',
+    'none'
+];
+
 class ProfileManager {
+    /**
+     * Get list of valid health conditions
+     * @returns {Array<string>} Valid health conditions
+     */
+    static getValidHealthConditions() {
+        return [...VALID_HEALTH_CONDITIONS];
+    }
+
     /**
      * Validate profile data
      * @param {Object} profileData - Profile data to validate
@@ -39,6 +64,19 @@ class ProfileManager {
             return { valid: false, error: 'Health conditions must be an array' };
         }
 
+        // Validate health conditions against known list
+        if (health_conditions && health_conditions.length > 0) {
+            const invalidConditions = health_conditions.filter(
+                c => !VALID_HEALTH_CONDITIONS.includes(c.toLowerCase())
+            );
+            if (invalidConditions.length > 0) {
+                return { 
+                    valid: false, 
+                    error: `Invalid health conditions: ${invalidConditions.join(', ')}. Valid options: ${VALID_HEALTH_CONDITIONS.join(', ')}` 
+                };
+            }
+        }
+
         return { valid: true, error: null };
     }
 
@@ -46,9 +84,10 @@ class ProfileManager {
      * Create a new user profile
      * @param {string} userId - User UUID from auth
      * @param {Object} profileData - Profile data
+     * @param {string} email - User email (optional, for search)
      * @returns {Promise<{profile: Object|null, error: Error|null}>}
      */
-    async createProfile(userId, profileData) {
+    async createProfile(userId, profileData, email = null) {
         try {
             // Validate profile data
             const validation = this.validateProfileData(profileData);
@@ -58,16 +97,20 @@ class ProfileManager {
 
             const { name, age, weight, height, body_type, health_conditions = [] } = profileData;
 
+            // Normalize health conditions to lowercase
+            const normalizedConditions = health_conditions.map(c => c.toLowerCase());
+
             const { data, error } = await supabase
                 .from('profiles')
                 .insert({
                     id: userId,
+                    email: email,
                     name: name.trim(),
                     age,
                     weight,
                     height,
                     body_type,
-                    health_conditions
+                    health_conditions: normalizedConditions
                 })
                 .select()
                 .single();
