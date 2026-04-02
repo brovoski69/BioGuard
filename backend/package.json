@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node test/connection-test.js",
-    "test:full": "node test/full-test.js"
+    "test:full": "node test/full-test.js",
+    "demo": "node test/demo.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
