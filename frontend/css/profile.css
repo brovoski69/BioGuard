@@ -1,0 +1,339 @@
+/* ═══════════════════════════════════════════════════════════════
+   BioGuard — Profile Page Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+.profile-page {
+    padding-top: 80px;
+    min-height: 100vh;
+}
+
+/* ── Progress Tracker ──────────────────────────────────────── */
+.profile-progress {
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.progress-step.active {
+    color: var(--accent-cyan);
+}
+
+.progress-step.done {
+    color: var(--success-green);
+}
+
+.progress-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+.progress-step.active .progress-step-dot {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.progress-step.done .progress-step-dot {
+    background: var(--success-green);
+}
+
+.progress-connector {
+    width: 40px;
+    height: 2px;
+    background: var(--text-muted);
+    transition: background 0.3s;
+}
+
+.progress-connector.done {
+    background: var(--success-green);
+}
+
+/* ── Two-Column Layout ─────────────────────────────────────── */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+    align-items: start;
+}
+
+/* ── Body Silhouette (Left) ────────────────────────────────── */
+.silhouette-panel {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(12px);
+}
+
+.silhouette-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    opacity: 0.3;
+}
+
+#silhouetteCanvas {
+    width: 100%;
+    max-width: 250px;
+    height: 400px;
+}
+
+.silhouette-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-top: 16px;
+    text-transform: uppercase;
+}
+
+/* Condition highlights */
+.condition-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    justify-content: center;
+}
+
+.condition-highlight {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--warning-yellow);
+    color: var(--warning-yellow);
+    opacity: 0.7;
+}
+
+/* ── Form Panel (Right) ───────────────────────────────────── */
+.form-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.form-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    opacity: 0.2;
+}
+
+.form-section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-primary);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section-title .icon {
+    font-size: 20px;
+}
+
+/* ── Slider Rows ───────────────────────────────────────────── */
+.slider-row {
+    margin-bottom: 24px;
+}
+
+.slider-row:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Body Type Cards ───────────────────────────────────────── */
+.body-type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.body-type-card {
+    background: var(--bg-card);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.body-type-card:hover {
+    border-color: var(--glass-border-bright);
+    transform: translateY(-3px);
+}
+
+.body-type-card.selected {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 25px var(--cyan-glow);
+    transform: translateY(-3px);
+}
+
+.body-type-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.body-type-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.body-type-desc {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+}
+
+/* ── Health Condition Chips ────────────────────────────────── */
+.health-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.health-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.health-chip:hover {
+    border-color: var(--glass-border-bright);
+    color: var(--text-primary);
+}
+
+.health-chip.active {
+    background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(0,245,255,0.03));
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.health-chip .chip-icon {
+    font-size: 14px;
+}
+
+/* ── Submit Section ────────────────────────────────────────── */
+.submit-section {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.btn-submit {
+    min-width: 260px;
+    padding: 16px 40px;
+    font-size: 16px;
+    animation: heartbeat 2s ease-in-out infinite;
+}
+
+.btn-submit:disabled {
+    animation: none;
+}
+
+.submit-disclaimer {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-top: 16px;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .silhouette-panel {
+        position: static;
+        padding: 24px;
+    }
+
+    #silhouetteCanvas {
+        height: 280px;
+    }
+
+    .body-type-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-section {
+        padding: 20px 16px;
+    }
+}

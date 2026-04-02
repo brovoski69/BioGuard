@@ -1,0 +1,489 @@
+/* ═══════════════════════════════════════════════════════════════
+   BioGuard — Simulation Page Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+.simulation-page {
+    padding-top: 64px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ── Three Column Layout ───────────────────────────────────── */
+.sim-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    height: calc(100vh - 64px);
+    gap: 0;
+}
+
+/* ── Left Panel ────────────────────────────────────────────── */
+.sim-left {
+    background: var(--bg-panel);
+    border-right: 1px solid var(--glass-border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sim-left::-webkit-scrollbar { width: 4px; }
+.sim-left::-webkit-scrollbar-track { background: transparent; }
+.sim-left::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+.panel-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-title::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: var(--accent-cyan);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* Scenario list */
+.scenario-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.scenario-list::-webkit-scrollbar { width: 3px; }
+.scenario-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+/* Controls section */
+.controls-section {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.controls-section .slider-container {
+    padding: 8px 0 20px;
+}
+
+/* Duration presets */
+.duration-presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.duration-preset {
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.duration-preset:hover {
+    border-color: var(--glass-border-bright);
+    color: var(--text-primary);
+}
+
+.duration-preset.active {
+    background: rgba(0,245,255,0.1);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+/* Run button */
+.run-btn-wrap {
+    padding-top: 8px;
+}
+
+#runSimBtn {
+    width: 100%;
+    position: relative;
+}
+
+#runSimBtn.pulse-ready {
+    animation: border-glow-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Center Panel ──────────────────────────────────────────── */
+.sim-center {
+    position: relative;
+    background: var(--bg-deep);
+    overflow: hidden;
+}
+
+#skeleton3d {
+    width: 100%;
+    height: 100%;
+}
+
+/* HUD Overlay */
+.hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.hud-top-left {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(10, 15, 30, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+}
+
+.hud-scenario-icon {
+    font-size: 20px;
+}
+
+.hud-scenario-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+}
+
+.hud-bottom {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10, 15, 30, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.hud-bottom.visible {
+    opacity: 1;
+}
+
+/* Fix-It Mode Toggle */
+.fixit-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    pointer-events: all;
+    z-index: 11;
+}
+
+.fixit-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: rgba(10, 15, 30, 0.7);
+    backdrop-filter: blur(8px);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fixit-btn:hover {
+    border-color: var(--success-green);
+    color: var(--success-green);
+}
+
+.fixit-btn.active {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: var(--success-green);
+    color: var(--success-green);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+/* View controls */
+.view-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 4px;
+    pointer-events: all;
+    z-index: 11;
+}
+
+.view-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: rgba(10, 15, 30, 0.7);
+    color: var(--text-dim);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.view-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+/* ── Right Panel ───────────────────────────────────────────── */
+.sim-right {
+    background: var(--bg-panel);
+    border-left: 1px solid var(--glass-border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sim-right::-webkit-scrollbar { width: 4px; }
+.sim-right::-webkit-scrollbar-track { background: transparent; }
+.sim-right::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+/* Gauges */
+.gauges-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.radial-gauge {
+    width: 90px;
+    height: 90px;
+}
+
+.radial-gauge .gauge-value {
+    font-size: 20px;
+}
+
+.radial-gauge .gauge-label {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+}
+
+/* Force chart */
+.force-chart-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    height: 220px;
+}
+
+/* Risk summary */
+.risk-summary {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+}
+
+.risk-overall-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.risk-overall-score {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.risk-overall-unit {
+    font-size: 18px;
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+/* Per-joint risk bars */
+.joint-risks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.joint-risk-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.joint-risk-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    width: 70px;
+    text-transform: uppercase;
+}
+
+.joint-risk-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-deep);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.joint-risk-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s;
+    width: 0%;
+}
+
+.joint-risk-val {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 32px;
+    text-align: right;
+}
+
+/* Warnings container */
+.warnings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Generate Report Button */
+.report-btn-wrap {
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+.report-btn-wrap .btn {
+    width: 100%;
+}
+
+/* ── Mobile Tab System ─────────────────────────────────────── */
+.sim-tabs {
+    display: none;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0 8px;
+}
+
+.sim-tab {
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.sim-tab.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .sim-layout {
+        grid-template-columns: 240px 1fr;
+    }
+    .sim-right {
+        display: none;
+    }
+    .sim-right.mobile-visible {
+        display: flex;
+        position: fixed;
+        right: 0;
+        top: 64px;
+        bottom: 0;
+        width: 320px;
+        z-index: 100;
+        box-shadow: -4px 0 30px rgba(0,0,0,0.5);
+    }
+}
+
+@media (max-width: 768px) {
+    .simulation-page {
+        overflow: auto;
+        height: auto;
+    }
+
+    .sim-tabs {
+        display: flex;
+    }
+
+    .sim-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .sim-left,
+    .sim-center,
+    .sim-right {
+        display: none;
+        border: none;
+    }
+
+    .sim-left.mobile-visible,
+    .sim-center.mobile-visible,
+    .sim-right.mobile-visible {
+        display: flex;
+    }
+
+    .sim-center.mobile-visible {
+        display: block;
+        height: 50vh;
+        min-height: 350px;
+    }
+
+    .sim-right.mobile-visible {
+        position: static;
+        width: 100%;
+        box-shadow: none;
+    }
+}
