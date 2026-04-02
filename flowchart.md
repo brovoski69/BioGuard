@@ -1,6 +1,6 @@
-# 🗺️ BioGuard — System Flowchart & Architecture
+# BioGuard — System Flowchart & Architecture
 
-## 📊 High-Level System Architecture
+## High-Level System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -21,7 +21,7 @@
 │   └──────────────┘  └──────────┘  └──────────────┘                              │
 │                                                                                  │
 │   ┌─────────────────────────────────────────────────────────────────────────┐   │
-│   │  🔮 FUTURE: Real-Time Posture Capture (Python + MediaPipe)              │   │
+│   │   FUTURE: Real-Time Posture Capture (Python + MediaPipe)              │   │
 │   │     Camera → Pose Detection → Joint Angles → Physics Engine            │   │
 │   └─────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                  │
@@ -30,7 +30,7 @@
 
 ---
 
-## 👤 User Journey Flowchart
+##  User Journey Flowchart
 
 ```
                                     ┌──────────────┐
@@ -163,7 +163,7 @@
 
 ---
 
-## 🔧 Backend Class Interaction
+##  Backend Class Interaction
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -237,7 +237,7 @@
 
 ---
 
-## 🔮 Future: Real-Time Capture Integration
+##  Future: Real-Time Capture Integration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -305,7 +305,7 @@
 
 ---
 
-## 📋 Scenario Library
+## Scenario Library
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -315,7 +315,7 @@
 │   ┌───────────────────────────────────────────────────────────────────────────┐ │
 │   │                              WORK                                         │ │
 │   ├─────────────────────┬─────────────────────┬───────────────────────────────┤ │
-│   │ 🪑 Sitting at Desk   │ 📦 Heavy Lifting    │ 🧍 Prolonged Standing         │ │
+│   │  Sitting at Desk   │  Heavy Lifting    │  Prolonged Standing         │ │
 │   │ trunk: 85°          │ trunk: 45°          │ trunk: 0°                     │ │
 │   │ knee: 90°           │ knee: 60°           │ knee: 5°                      │ │
 │   │ hip: 90°            │ hip: 50°            │ hip: 0°                       │ │
@@ -324,7 +324,7 @@
 │   ┌───────────────────────────────────────────────────────────────────────────┐ │
 │   │                            EXERCISE                                       │ │
 │   ├─────────────────────┬─────────────────────┬─────────────────┬─────────────┤ │
-│   │ 🏃 Running           │ 🚴 Cycling           │ 🏋️ Squatting     │ 🧘 Yoga     │ │
+│   │  Running           │  Cycling           │  Squatting     │  Yoga     │ │
 │   │ trunk: 10°          │ trunk: 30°          │ trunk: 30°      │ trunk: var  │ │
 │   │ knee: 45°           │ knee: 70°           │ knee: 110°      │ knee: var   │ │
 │   │ hip: 30°            │ hip: 50°            │ hip: 90°        │ hip: var    │ │
@@ -333,7 +333,7 @@
 │   ┌───────────────────────────────────────────────────────────────────────────┐ │
 │   │                        DAILY / LIFESTYLE                                  │ │
 │   ├─────────────────────┬─────────────────────┬─────────────────┬─────────────┤ │
-│   │ 🪜 Climbing Stairs   │ 🚗 Driving           │ 👠 High Heels    │ 🌱 Gardening │ │
+│   │  Climbing Stairs   │  Driving           │  High Heels    │  Gardening │ │
 │   │ trunk: 15°          │ trunk: 80°          │ trunk: 5°       │ trunk: 60°  │ │
 │   │ knee: 80°           │ knee: 85°           │ knee: 15°       │ knee: 100°  │ │
 │   │ hip: 70°            │ hip: 95°            │ hip: 10°        │ hip: 80°    │ │
@@ -344,7 +344,7 @@
 
 ---
 
-## 🔐 Security Flow
+##  Security Flow
 
 ```
                          ┌─────────────────────────────────────────┐
@@ -379,7 +379,7 @@
 
 ---
 
-## 📈 Risk Assessment Pipeline
+##  Risk Assessment Pipeline
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -421,7 +421,7 @@
 │  │  │                                                                     │   ││
 │  │  │    0 ────────── 30 ────────── 60 ────────── 80 ────────── 100      │   ││
 │  │  │    │     LOW     │   MODERATE  │    HIGH    │   CRITICAL   │       │   ││
-│  │  │    │   🟢 Safe   │  🟡 Caution │  🟠 Warning │  🔴 Danger  │       │   ││
+│  │  │    │    Safe   │   Caution │   Warning │   Danger  │       │   ││
 │  │  │                                                                     │   ││
 │  │  └─────────────────────────────────────────────────────────────────────┘   ││
 │  └───────────────────────────────────┬─────────────────────────────────────────┘│
@@ -432,8 +432,8 @@
 │  │                                                                             ││
 │  │   Score 0-30:   "Great posture! Keep up the good work."                    ││
 │  │   Score 31-60:  "Consider adjusting posture. Take breaks."                 ││
-│  │   Score 61-80:  "⚠️ Warning: High stress detected. Reduce load."           ││
-│  │   Score 81-100: "🚨 Critical: Immediate posture correction needed."        ││
+│  │   Score 61-80:  " Warning: High stress detected. Reduce load."           ││
+│  │   Score 81-100: " Critical: Immediate posture correction needed."        ││
 │  │                                                                             ││
 │  └─────────────────────────────────────────────────────────────────────────────┘│
 │                                                                                  │
@@ -442,7 +442,7 @@
 
 ---
 
-## 📅 Long-Term Projection
+##  Long-Term Projection
 
 ```
                     ┌─────────────────────────────────────────┐
@@ -479,6 +479,6 @@
 
 <div align="center">
 
-**🦴 BioGuard — Know your joints. Protect your future.**
+**BioGuard — Know your joints. Protect your future.**
 
 </div>

@@ -1,6 +1,6 @@
-# 🔮 Future Features — BioGuard
+# Future Features — BioGuard
 
-## 📷 Real-Time Posture Capture Mode
+## Real-Time Posture Capture Mode
 
 ### Overview
 Integrate a Python-based pose estimation system that captures **real-time joint angles** from webcam/video and feeds them into BioGuard's PhysicsEngine for live stress calculations.
@@ -52,5 +52,5 @@ matplotlib>=3.7.0
 
 
 ### Status
-📋 Planned — Not yet implemented
+ Planned — Not yet implemented
 
