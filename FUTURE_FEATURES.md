@@ -50,12 +50,7 @@ Pillow>=10.0.0
 matplotlib>=3.7.0
 ```
 
-### Priority
-⭐⭐⭐⭐ High — Transforms BioGuard from simulation to real measurement tool
 
 ### Status
 📋 Planned — Not yet implemented
 
----
-
-*Last updated: April 2026*
