@@ -1,41 +1,21 @@
-/**
- * ProfileManager - Handles user profile CRUD operations
- * Manages profile creation, retrieval, and updates
- */
-
+// Manages user profiles - their physical stats, health conditions, etc.
 import { supabase } from './SupabaseClient.js';
 
-// Valid health conditions that the system recognizes
+// These are the health conditions our physics engine knows how to account for
 const VALID_HEALTH_CONDITIONS = [
-    'arthritis',
-    'osteoporosis', 
-    'herniated_disc',
-    'knee_injury',
-    'hip_replacement',
-    'obesity',
-    'scoliosis',
-    'sciatica',
-    'carpal_tunnel',
-    'tendonitis',
-    'bursitis',
-    'fibromyalgia',
-    'none'
+    'arthritis', 'osteoporosis', 'herniated_disc', 'knee_injury',
+    'hip_replacement', 'obesity', 'scoliosis', 'sciatica',
+    'carpal_tunnel', 'tendonitis', 'bursitis', 'fibromyalgia', 'none'
 ];
 
 class ProfileManager {
-    /**
-     * Get list of valid health conditions
-     * @returns {Array<string>} Valid health conditions
-     */
+    
+    // Helper to get the list of conditions we support
     static getValidHealthConditions() {
         return [...VALID_HEALTH_CONDITIONS];
     }
 
-    /**
-     * Validate profile data
-     * @param {Object} profileData - Profile data to validate
-     * @returns {{valid: boolean, error: string|null}}
-     */
+    // Make sure all the profile fields are sensible before saving
     validateProfileData(profileData) {
         const { name, age, weight, height, body_type, health_conditions } = profileData;
 
@@ -64,7 +44,7 @@ class ProfileManager {
             return { valid: false, error: 'Health conditions must be an array' };
         }
 
-        // Validate health conditions against known list
+        // Check each condition is one we actually know how to handle
         if (health_conditions && health_conditions.length > 0) {
             const invalidConditions = health_conditions.filter(
                 c => !VALID_HEALTH_CONDITIONS.includes(c.toLowerCase())
@@ -80,24 +60,15 @@ class ProfileManager {
         return { valid: true, error: null };
     }
 
-    /**
-     * Create a new user profile
-     * @param {string} userId - User UUID from auth
-     * @param {Object} profileData - Profile data
-     * @param {string} email - User email (optional, for search)
-     * @returns {Promise<{profile: Object|null, error: Error|null}>}
-     */
+    // Create a new profile for a freshly registered user
     async createProfile(userId, profileData, email = null) {
         try {
-            // Validate profile data
             const validation = this.validateProfileData(profileData);
             if (!validation.valid) {
                 throw new Error(validation.error);
             }
 
             const { name, age, weight, height, body_type, health_conditions = [] } = profileData;
-
-            // Normalize health conditions to lowercase
             const normalizedConditions = health_conditions.map(c => c.toLowerCase());
 
             const { data, error } = await supabase
@@ -106,17 +77,13 @@ class ProfileManager {
                     id: userId,
                     email: email,
                     name: name.trim(),
-                    age,
-                    weight,
-                    height,
-                    body_type,
+                    age, weight, height, body_type,
                     health_conditions: normalizedConditions
                 })
                 .select()
                 .single();
 
             if (error) throw error;
-
             return { profile: data, error: null };
         } catch (error) {
             console.error('CreateProfile error:', error.message);
@@ -124,16 +91,10 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Get user profile by user ID
-     * @param {string} userId - User UUID
-     * @returns {Promise<{profile: Object|null, error: Error|null}>}
-     */
+    // Fetch a user's profile by their ID
     async getProfile(userId) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { data, error } = await supabase
                 .from('profiles')
@@ -142,7 +103,6 @@ class ProfileManager {
                 .single();
 
             if (error) throw error;
-
             return { profile: data, error: null };
         } catch (error) {
             console.error('GetProfile error:', error.message);
@@ -150,19 +110,12 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Update user profile
-     * @param {string} userId - User UUID
-     * @param {Object} updates - Fields to update
-     * @returns {Promise<{profile: Object|null, error: Error|null}>}
-     */
+    // Update specific fields in a profile (partial update)
     async updateProfile(userId, updates) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
-            // Validate partial updates
+            // Validate each field that's being updated
             if (updates.age !== undefined && (typeof updates.age !== 'number' || updates.age <= 0)) {
                 throw new Error('Age must be a positive number');
             }
@@ -182,7 +135,7 @@ class ProfileManager {
                 throw new Error('Health conditions must be an array');
             }
 
-            // Remove any undefined values and id field
+            // Strip out undefined values and the id (shouldn't change that)
             const cleanUpdates = Object.fromEntries(
                 Object.entries(updates).filter(([key, val]) => val !== undefined && key !== 'id')
             );
@@ -199,7 +152,6 @@ class ProfileManager {
                 .single();
 
             if (error) throw error;
-
             return { profile: data, error: null };
         } catch (error) {
             console.error('UpdateProfile error:', error.message);
@@ -207,16 +159,10 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Delete user profile
-     * @param {string} userId - User UUID
-     * @returns {Promise<{success: boolean, error: Error|null}>}
-     */
+    // Remove a user's profile entirely
     async deleteProfile(userId) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { error } = await supabase
                 .from('profiles')
@@ -224,7 +170,6 @@ class ProfileManager {
                 .eq('id', userId);
 
             if (error) throw error;
-
             return { success: true, error: null };
         } catch (error) {
             console.error('DeleteProfile error:', error.message);
@@ -232,11 +177,7 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Check if profile exists for user
-     * @param {string} userId - User UUID
-     * @returns {Promise<boolean>}
-     */
+    // Quick check if a user has set up their profile yet
     async profileExists(userId) {
         try {
             const { data, error } = await supabase

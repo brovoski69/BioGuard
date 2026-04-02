@@ -1,23 +1,15 @@
-/**
- * SessionManager - Handles simulation session CRUD operations
- * Manages saving, retrieving, and deleting simulation sessions
- * Includes rate limiting to prevent abuse (max 1 save per minute)
- */
-
+// Handles saving and retrieving simulation sessions (the actual joint stress calculations)
+// Has built-in rate limiting so users can't spam the database
 import { supabase } from './SupabaseClient.js';
 
 class SessionManager {
     constructor() {
-        // Rate limiting: Track last save time per user
+        // Track when each user last saved - prevents spamming saves
         this.lastSaveTime = new Map();
-        this.RATE_LIMIT_MS = 60000; // 1 minute in milliseconds
+        this.RATE_LIMIT_MS = 60000; // 1 save per minute max
     }
 
-    /**
-     * Check if user is rate limited
-     * @param {string} userId - User UUID
-     * @returns {{limited: boolean, remainingSeconds: number}}
-     */
+    // Check if we should block a save (user saving too frequently)
     checkRateLimit(userId) {
         const lastTime = this.lastSaveTime.get(userId);
         if (!lastTime) {
@@ -33,34 +25,25 @@ class SessionManager {
         return { limited: false, remainingSeconds: 0 };
     }
 
-    /**
-     * Validate session data
-     * @param {Object} sessionData - Session data to validate
-     * @returns {{valid: boolean, error: string|null}}
-     */
+    // Make sure the session data looks right before saving
     validateSessionData(sessionData) {
         const { scenario, posture_angles, joint_forces, risk_scores, load_weight, activity_duration } = sessionData;
 
         if (!scenario || typeof scenario !== 'string') {
             return { valid: false, error: 'Scenario is required' };
         }
-
         if (!posture_angles || typeof posture_angles !== 'object') {
             return { valid: false, error: 'Posture angles must be an object' };
         }
-
         if (!joint_forces || typeof joint_forces !== 'object') {
             return { valid: false, error: 'Joint forces must be an object' };
         }
-
         if (!risk_scores || typeof risk_scores !== 'object') {
             return { valid: false, error: 'Risk scores must be an object' };
         }
-
         if (load_weight !== undefined && (typeof load_weight !== 'number' || load_weight < 0)) {
             return { valid: false, error: 'Load weight must be a non-negative number' };
         }
-
         if (activity_duration !== undefined && (typeof activity_duration !== 'number' || activity_duration < 0)) {
             return { valid: false, error: 'Activity duration must be a non-negative number' };
         }
@@ -68,56 +51,38 @@ class SessionManager {
         return { valid: true, error: null };
     }
 
-    /**
-     * Save a new simulation session
-     * @param {string} userId - User UUID
-     * @param {Object} sessionData - Session data including scenario, posture_angles, joint_forces, risk_scores, load_weight, activity_duration
-     * @returns {Promise<{session: Object|null, error: Error|null}>}
-     */
+    // Save a completed simulation to the database
     async saveSession(userId, sessionData) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
-            // Check rate limit
+            // Don't let users spam saves
             const rateCheck = this.checkRateLimit(userId);
             if (rateCheck.limited) {
                 throw new Error(`Rate limited. Please wait ${rateCheck.remainingSeconds} seconds before saving another session.`);
             }
 
-            // Validate session data
             const validation = this.validateSessionData(sessionData);
-            if (!validation.valid) {
-                throw new Error(validation.error);
-            }
+            if (!validation.valid) throw new Error(validation.error);
 
             const { 
-                scenario, 
-                posture_angles, 
-                joint_forces, 
-                risk_scores, 
-                load_weight = 0, 
-                activity_duration = 0 
+                scenario, posture_angles, joint_forces, risk_scores, 
+                load_weight = 0, activity_duration = 0 
             } = sessionData;
 
             const { data, error } = await supabase
                 .from('simulation_sessions')
                 .insert({
                     user_id: userId,
-                    scenario,
-                    posture_angles,
-                    joint_forces,
-                    risk_scores,
-                    load_weight,
-                    activity_duration
+                    scenario, posture_angles, joint_forces, risk_scores,
+                    load_weight, activity_duration
                 })
                 .select()
                 .single();
 
             if (error) throw error;
 
-            // Update rate limit tracker
+            // Remember when they saved so we can enforce rate limiting
             this.lastSaveTime.set(userId, Date.now());
 
             return { session: data, error: null };
@@ -127,31 +92,21 @@ class SessionManager {
         }
     }
 
-    /**
-     * Get all sessions for a user
-     * @param {string} userId - User UUID
-     * @param {Object} options - Query options (limit, offset, orderBy)
-     * @returns {Promise<{sessions: Array|null, error: Error|null}>}
-     */
+    // Get all of a user's past sessions (with pagination)
     async getSessions(userId, options = {}) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { limit = 50, offset = 0, orderBy = 'created_at', ascending = false } = options;
 
-            let query = supabase
+            const { data, error } = await supabase
                 .from('simulation_sessions')
                 .select('*')
                 .eq('user_id', userId)
                 .order(orderBy, { ascending })
                 .range(offset, offset + limit - 1);
 
-            const { data, error } = await query;
-
             if (error) throw error;
-
             return { sessions: data, error: null };
         } catch (error) {
             console.error('GetSessions error:', error.message);
@@ -159,16 +114,10 @@ class SessionManager {
         }
     }
 
-    /**
-     * Get a single session by ID
-     * @param {string} sessionId - Session UUID
-     * @returns {Promise<{session: Object|null, error: Error|null}>}
-     */
+    // Fetch one specific session by its ID
     async getSession(sessionId) {
         try {
-            if (!sessionId) {
-                throw new Error('Session ID is required');
-            }
+            if (!sessionId) throw new Error('Session ID is required');
 
             const { data, error } = await supabase
                 .from('simulation_sessions')
@@ -177,7 +126,6 @@ class SessionManager {
                 .single();
 
             if (error) throw error;
-
             return { session: data, error: null };
         } catch (error) {
             console.error('GetSession error:', error.message);
@@ -185,16 +133,10 @@ class SessionManager {
         }
     }
 
-    /**
-     * Delete a session by ID
-     * @param {string} sessionId - Session UUID
-     * @returns {Promise<{success: boolean, error: Error|null}>}
-     */
+    // Remove a session from history
     async deleteSession(sessionId) {
         try {
-            if (!sessionId) {
-                throw new Error('Session ID is required');
-            }
+            if (!sessionId) throw new Error('Session ID is required');
 
             const { error } = await supabase
                 .from('simulation_sessions')
@@ -202,7 +144,6 @@ class SessionManager {
                 .eq('id', sessionId);
 
             if (error) throw error;
-
             return { success: true, error: null };
         } catch (error) {
             console.error('DeleteSession error:', error.message);
@@ -210,16 +151,10 @@ class SessionManager {
         }
     }
 
-    /**
-     * Get sessions count for a user
-     * @param {string} userId - User UUID
-     * @returns {Promise<{count: number, error: Error|null}>}
-     */
+    // Just get the count (useful for dashboard stats)
     async getSessionsCount(userId) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { count, error } = await supabase
                 .from('simulation_sessions')
@@ -227,7 +162,6 @@ class SessionManager {
                 .eq('user_id', userId);
 
             if (error) throw error;
-
             return { count: count || 0, error: null };
         } catch (error) {
             console.error('GetSessionsCount error:', error.message);
@@ -235,17 +169,10 @@ class SessionManager {
         }
     }
 
-    /**
-     * Get sessions by scenario type
-     * @param {string} userId - User UUID
-     * @param {string} scenario - Scenario name
-     * @returns {Promise<{sessions: Array|null, error: Error|null}>}
-     */
+    // Filter sessions by activity type (e.g., all "Heavy Lifting" sessions)
     async getSessionsByScenario(userId, scenario) {
         try {
-            if (!userId || !scenario) {
-                throw new Error('User ID and scenario are required');
-            }
+            if (!userId || !scenario) throw new Error('User ID and scenario are required');
 
             const { data, error } = await supabase
                 .from('simulation_sessions')
@@ -255,7 +182,6 @@ class SessionManager {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-
             return { sessions: data, error: null };
         } catch (error) {
             console.error('GetSessionsByScenario error:', error.message);

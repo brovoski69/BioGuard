@@ -1,11 +1,8 @@
-/**
- * ScenarioManager - Manages predefined simulation scenarios
- * Provides preset posture configurations for common activities
- */
+// All the preset activity scenarios live here
+// Each scenario has typical posture angles so users don't have to manually input them
 
 class ScenarioManager {
     constructor() {
-        // Define all preset scenarios with metadata
         this.scenarios = {
             sitting_desk: {
                 name: 'Sitting at Desk',
@@ -178,11 +175,7 @@ class ScenarioManager {
         };
     }
 
-    /**
-     * Load a specific scenario by name
-     * @param {string} scenarioName - Name of the scenario
-     * @returns {{scenario: Object|null, error: string|null}}
-     */
+    // Get a scenario by its ID
     loadScenario(scenarioName) {
         const scenario = this.scenarios[scenarioName];
         
@@ -193,29 +186,16 @@ class ScenarioManager {
             };
         }
 
-        return { 
-            scenario: {
-                id: scenarioName,
-                ...scenario
-            }, 
-            error: null 
-        };
+        return { scenario: { id: scenarioName, ...scenario }, error: null };
     }
 
-    /**
-     * Get posture angles for a scenario
-     * @param {string} scenarioName - Name of the scenario
-     * @returns {Object|null} Posture angles object or null if not found
-     */
+    // Just the angles for a scenario (useful for quick lookups)
     getPostureAngles(scenarioName) {
         const scenario = this.scenarios[scenarioName];
         return scenario ? scenario.postureAngles : null;
     }
 
-    /**
-     * Get all available scenarios with metadata
-     * @returns {Array<Object>} Array of scenario objects
-     */
+    // Return all scenarios as an array
     getAllScenarios() {
         return Object.entries(this.scenarios).map(([id, scenario]) => ({
             id,
@@ -230,29 +210,18 @@ class ScenarioManager {
         }));
     }
 
-    /**
-     * Get scenarios by category
-     * @param {string} category - Category name (work, exercise, daily, leisure, rest, lifestyle)
-     * @returns {Array<Object>} Filtered array of scenarios
-     */
+    // Filter scenarios by category (work, exercise, daily, etc)
     getScenariosByCategory(category) {
         return this.getAllScenarios().filter(s => s.category === category);
     }
 
-    /**
-     * Get all available categories
-     * @returns {Array<string>} Array of category names
-     */
+    // Get list of all category names
     getCategories() {
         const categories = new Set(Object.values(this.scenarios).map(s => s.category));
         return Array.from(categories);
     }
 
-    /**
-     * Search scenarios by name or description
-     * @param {string} query - Search query
-     * @returns {Array<Object>} Matching scenarios
-     */
+    // Search by name, description, or risk factors
     searchScenarios(query) {
         const lowerQuery = query.toLowerCase();
         return this.getAllScenarios().filter(s => 
@@ -262,13 +231,7 @@ class ScenarioManager {
         );
     }
 
-    /**
-     * Create a custom scenario
-     * @param {string} name - Scenario name
-     * @param {Object} postureAngles - Custom posture angles
-     * @param {Object} metadata - Additional metadata
-     * @returns {Object} The created scenario
-     */
+    // Let users create their own scenarios on the fly
     createCustomScenario(name, postureAngles, metadata = {}) {
         const id = name.toLowerCase().replace(/\s+/g, '_');
         
@@ -287,21 +250,16 @@ class ScenarioManager {
             riskFactors: metadata.riskFactors || []
         };
 
-        // Add to scenarios (temporary, not persisted)
         this.scenarios[id] = customScenario;
-
         return { id, ...customScenario };
     }
 
-    /**
-     * Get scenario recommendations based on user conditions
-     * @param {Array<string>} healthConditions - User's health conditions
-     * @returns {Object} Scenarios to avoid and recommended scenarios
-     */
+    // Suggest what activities to avoid/do based on health conditions
     getRecommendationsForConditions(healthConditions) {
         const avoid = [];
         const recommended = [];
 
+        // Which activities are risky or helpful for each condition
         const conditionMap = {
             arthritis: {
                 avoid: ['heavy_lifting', 'squatting', 'running'],

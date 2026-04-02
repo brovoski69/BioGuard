@@ -1,8 +1,4 @@
-/**
- * AuthManager - Handles all authentication operations
- * Manages user sign up, sign in, sign out, and auth state
- */
-
+// Handles user login, signup, logout and session management
 import { supabase } from './SupabaseClient.js';
 import ProfileManager from './ProfileManager.js';
 
@@ -11,16 +7,9 @@ class AuthManager {
         this.profileManager = new ProfileManager();
     }
 
-    /**
-     * Sign up a new user with email and password
-     * @param {string} email - User email
-     * @param {string} password - User password
-     * @param {Object} profileData - User profile data (name, age, weight, height, body_type, health_conditions)
-     * @returns {Promise<{user: Object|null, error: Error|null}>}
-     */
+    // Register a new user - also creates their profile in the database
     async signUp(email, password, profileData) {
         try {
-            // Validate inputs
             if (!email || !password) {
                 throw new Error('Email and password are required');
             }
@@ -28,25 +17,22 @@ class AuthManager {
                 throw new Error('Password must be at least 6 characters');
             }
 
-            // Sign up with Supabase Auth
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: {
-                        name: profileData.name
-                    }
+                    data: { name: profileData.name }
                 }
             });
 
             if (error) throw error;
 
-            // Create user profile after successful signup
+            // Once auth succeeds, set up their profile with all their details
             if (data.user) {
                 const profileResult = await this.profileManager.createProfile(
                     data.user.id, 
                     profileData,
-                    email  // Pass email for profile storage
+                    email
                 );
                 if (profileResult.error) {
                     console.error('Profile creation error:', profileResult.error);
@@ -60,12 +46,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Sign in with email and password
-     * @param {string} email - User email
-     * @param {string} password - User password
-     * @returns {Promise<{user: Object|null, session: Object|null, error: Error|null}>}
-     */
+    // Regular email/password login
     async signIn(email, password) {
         try {
             if (!email || !password) {
@@ -86,27 +67,19 @@ class AuthManager {
         }
     }
 
-    /**
-     * Sign in with Google OAuth
-     * @param {string} redirectUrl - Optional custom redirect URL
-     * @returns {Promise<{error: Error|null}>}
-     */
+    // Google OAuth login - redirects to Google then back to our app
     async signInWithGoogle(redirectUrl = null) {
         try {
-            // Use provided URL, or try to get from environment, or fallback to window.location
             const callbackUrl = redirectUrl || 
                 (typeof process !== 'undefined' && process.env?.AUTH_REDIRECT_URL) ||
                 (typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : null);
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: {
-                    redirectTo: callbackUrl
-                }
+                options: { redirectTo: callbackUrl }
             });
 
             if (error) throw error;
-
             return { data, error: null };
         } catch (error) {
             console.error('Google SignIn error:', error.message);
@@ -114,10 +87,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Sign out the current user
-     * @returns {Promise<{error: Error|null}>}
-     */
+    // Clear the session and log user out
     async signOut() {
         try {
             const { error } = await supabase.auth.signOut();
@@ -129,10 +99,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Get the currently authenticated user
-     * @returns {Promise<{user: Object|null, error: Error|null}>}
-     */
+    // Check who's currently logged in
     async getCurrentUser() {
         try {
             const { data: { user }, error } = await supabase.auth.getUser();
@@ -144,10 +111,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Get the current session
-     * @returns {Promise<{session: Object|null, error: Error|null}>}
-     */
+    // Get current login session (includes tokens, expiry, etc)
     async getSession() {
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
@@ -159,11 +123,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Subscribe to auth state changes
-     * @param {Function} callback - Callback function (event, session) => void
-     * @returns {Object} Subscription object with unsubscribe method
-     */
+    // Listen for login/logout events - useful for updating UI
     onAuthStateChange(callback) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             callback(event, session);
@@ -171,12 +131,7 @@ class AuthManager {
         return subscription;
     }
 
-    /**
-     * Send password reset email
-     * @param {string} email - User email
-     * @param {string} redirectUrl - Optional custom redirect URL
-     * @returns {Promise<{error: Error|null}>}
-     */
+    // Send "forgot password" email with reset link
     async resetPassword(email, redirectUrl = null) {
         try {
             if (!email) {
@@ -199,11 +154,7 @@ class AuthManager {
         }
     }
 
-    /**
-     * Update user password
-     * @param {string} newPassword - New password
-     * @returns {Promise<{error: Error|null}>}
-     */
+    // Change password for logged-in user
     async updatePassword(newPassword) {
         try {
             if (!newPassword || newPassword.length < 6) {

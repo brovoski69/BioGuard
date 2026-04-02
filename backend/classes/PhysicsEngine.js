@@ -1,61 +1,46 @@
-/**
- * PhysicsEngine - Core biomechanics simulation engine
- * Calculates joint forces, risk scores, and long-term projections
- * Uses realistic biomechanics formulas adjusted for user profile
- */
+// The core biomechanics engine - calculates forces on joints based on posture and load
+// All the physics math happens here
 
 class PhysicsEngine {
-    /**
-     * Initialize physics engine with user profile data
-     * @param {Object} profileData - User profile (age, weight, height, health_conditions)
-     */
+    
+    // Set up the engine with user's physical characteristics
     constructor(profileData) {
         this.age = profileData.age || 30;
-        this.weight = profileData.weight || 70; // kg
-        this.height = profileData.height || 170; // cm
+        this.weight = profileData.weight || 70;
+        this.height = profileData.height || 170;
         this.bodyType = profileData.body_type || 'mesomorph';
         this.healthConditions = profileData.health_conditions || [];
 
-        // Calculate derived metrics
-        this.bodyMass = this.weight; // kg
+        this.bodyMass = this.weight;
         this.bmi = this.weight / Math.pow(this.height / 100, 2);
         
-        // Age-based safe thresholds (decrease with age)
+        // Figure out what force levels are safe for this person
         this.safeThresholds = this.calculateSafeThresholds();
-        
-        // Health condition multipliers
         this.conditionMultipliers = this.calculateConditionMultipliers();
     }
 
-    /**
-     * Calculate age-adjusted safe thresholds for joint forces
-     * @returns {Object} Safe thresholds for each joint
-     */
+    // Determine safe force limits - younger/healthier people can handle more
     calculateSafeThresholds() {
-        // Base thresholds for a healthy 25-year-old (in Newtons)
+        // Starting point: what a healthy 25-year-old can handle (Newtons)
         const baseThresholds = {
-            knee: 450,
-            spine: 900,
-            hip: 400,
-            ankle: 350,
-            shoulder: 300
+            knee: 450, spine: 900, hip: 400, ankle: 350, shoulder: 300
         };
 
-        // Age degradation factor (starts declining after 25)
+        // Joints get weaker as we age (about 0.8% per year after 25)
         const ageFactor = this.age <= 25 ? 1 : 1 - ((this.age - 25) * 0.008);
         
-        // BMI adjustment (higher BMI = lower safe threshold)
+        // Higher BMI = joints under more constant stress = lower safe threshold
         const bmiFactor = this.bmi <= 25 ? 1 : 1 - ((this.bmi - 25) * 0.02);
 
-        // Body type adjustments
+        // Body frame affects what you can handle
         const bodyTypeFactors = {
-            ectomorph: 0.9,  // Lighter frame, lower thresholds
-            mesomorph: 1.0, // Athletic build, standard
-            endomorph: 0.95 // Heavier build, slightly lower
+            ectomorph: 0.9,   // Lighter frame
+            mesomorph: 1.0,   // Athletic build
+            endomorph: 0.95   // Heavier build
         };
         const bodyTypeFactor = bodyTypeFactors[this.bodyType] || 1;
 
-        // Apply all factors to base thresholds
+        // Combine all factors
         const thresholds = {};
         for (const [joint, base] of Object.entries(baseThresholds)) {
             thresholds[joint] = base * ageFactor * bmiFactor * bodyTypeFactor;
@@ -64,18 +49,11 @@ class PhysicsEngine {
         return thresholds;
     }
 
-    /**
-     * Calculate risk multipliers based on health conditions
-     * @returns {Object} Multipliers for risk calculation
-     */
+    // Health conditions make certain joints more vulnerable
     calculateConditionMultipliers() {
-        const multipliers = {
-            overall: 1,
-            knee: 1,
-            spine: 1,
-            hip: 1
-        };
+        const multipliers = { overall: 1, knee: 1, spine: 1, hip: 1 };
 
+        // How much each condition increases risk (e.g., arthritis = 1.5x knee risk)
         const conditionEffects = {
             arthritis: { knee: 1.5, hip: 1.4, spine: 1.2, overall: 1.3 },
             osteoporosis: { knee: 1.3, hip: 1.5, spine: 1.6, overall: 1.4 },
@@ -87,6 +65,7 @@ class PhysicsEngine {
             sciatica: { spine: 1.4, hip: 1.3, overall: 1.2 }
         };
 
+        // Stack up multipliers for all conditions the user has
         for (const condition of this.healthConditions) {
             const effects = conditionEffects[condition.toLowerCase()];
             if (effects) {
@@ -99,54 +78,39 @@ class PhysicsEngine {
         return multipliers;
     }
 
-    /**
-     * Convert degrees to radians
-     * @param {number} degrees - Angle in degrees
-     * @returns {number} Angle in radians
-     */
     toRadians(degrees) {
         return degrees * (Math.PI / 180);
     }
 
-    /**
-     * Calculate joint forces based on posture angles and load
-     * @param {Object} postureAngles - Angles for trunk, knee, hip (in degrees)
-     * @param {number} loadWeight - External load weight in kg
-     * @returns {Object} Forces on each joint in Newtons
-     */
+    // THE MAIN CALCULATION - convert posture angles to actual forces on joints
     calculateJointForces(postureAngles, loadWeight = 0) {
         const { trunk = 0, knee = 0, hip = 0 } = postureAngles;
-        const g = 9.81; // Gravity constant
-        const bodyWeight = this.bodyMass * g; // Body weight in Newtons
-        const loadForce = loadWeight * g; // Load in Newtons
+        const g = 9.81;
+        const bodyWeight = this.bodyMass * g;
+        const loadForce = loadWeight * g;
 
-        // Moment arm calculations (approximate, based on body proportions)
-        const kneeMomentArm = this.height * 0.002; // ~0.34m for 170cm person
-        const spineMomentArm = this.height * 0.003; // ~0.51m for 170cm person
-        const hipMomentArm = this.height * 0.0015; // ~0.255m for 170cm person
+        // Moment arms scale with height (lever effect)
+        const kneeMomentArm = this.height * 0.002;
+        const spineMomentArm = this.height * 0.003;
+        const hipMomentArm = this.height * 0.0015;
 
-        // Knee force calculation
-        // F_knee = (bodyWeight × 0.5 × sin(kneeAngle)) + (load × momentArm)
+        // Knee: affected by knee bend angle and any load carried
         const kneeAngleRad = this.toRadians(knee);
         const kneeForce = (bodyWeight * 0.5 * Math.sin(kneeAngleRad)) + 
                           (loadForce * kneeMomentArm * Math.cos(kneeAngleRad));
 
-        // Spinal compression calculation
-        // F_spine = bodyWeight × sin(trunkAngle) + load
+        // Spine: trunk lean + any load adds compression
         const trunkAngleRad = this.toRadians(trunk);
         const spineForce = (bodyWeight * 0.6 * Math.sin(trunkAngleRad)) + 
                            (loadForce * (1 + spineMomentArm * Math.sin(trunkAngleRad)));
 
-        // Hip force calculation
-        // F_hip = bodyWeight × cos(hipAngle) × 0.6
+        // Hip: supports body weight plus distributes load
         const hipAngleRad = this.toRadians(hip);
         const hipForce = (bodyWeight * Math.cos(hipAngleRad) * 0.6) + 
                          (loadForce * hipMomentArm);
 
-        // Ankle force (derived from ground reaction force)
+        // Ankle and shoulder are simpler calculations
         const ankleForce = bodyWeight * 0.3 + loadForce * 0.5;
-
-        // Shoulder force (for carrying loads)
         const shoulderForce = loadForce * 0.8;
 
         return {
@@ -158,11 +122,7 @@ class PhysicsEngine {
         };
     }
 
-    /**
-     * Calculate risk scores based on joint forces
-     * @param {Object} jointForces - Forces on each joint
-     * @returns {Object} Risk scores (0-100) for each joint
-     */
+    // Convert raw forces to risk scores (0-100 scale)
     calculateRiskScores(jointForces) {
         const riskScores = {};
         let totalRisk = 0;
@@ -171,81 +131,59 @@ class PhysicsEngine {
         for (const [joint, force] of Object.entries(jointForces)) {
             const threshold = this.safeThresholds[joint];
             if (threshold) {
-                // Calculate base risk as percentage of threshold
+                // Base risk is how close we are to the threshold
                 let risk = (force / threshold) * 50;
 
-                // Apply condition multipliers
+                // Bump up risk if they have relevant health conditions
                 const multiplier = this.conditionMultipliers[joint] || 1;
                 risk *= multiplier;
 
-                // Apply age factor for additional risk
+                // Extra risk for older folks
                 if (this.age > 50) {
                     risk *= 1 + ((this.age - 50) * 0.01);
                 }
 
-                // Cap at 100
                 riskScores[joint] = Math.min(100, Math.round(risk));
                 totalRisk += riskScores[joint];
                 jointCount++;
             }
         }
 
-        // Calculate overall risk with condition multiplier
+        // Overall score considers all joints plus general health
         const overallRisk = (totalRisk / jointCount) * (this.conditionMultipliers.overall || 1);
         riskScores.overall = Math.min(100, Math.round(overallRisk));
 
         return riskScores;
     }
 
-    /**
-     * Project long-term cumulative damage
-     * @param {Object} riskScores - Current risk scores
-     * @param {number} hoursPerDay - Hours of activity per day
-     * @param {number} daysPerWeek - Days of activity per week
-     * @returns {Object} Projected risk scores at various time intervals
-     */
+    // Predict how risk accumulates over months/years of this activity
     projectLongTermDamage(riskScores, hoursPerDay = 8, daysPerWeek = 5) {
-        // Activity exposure factor
         const weeklyExposure = hoursPerDay * daysPerWeek;
-        const exposureFactor = weeklyExposure / 40; // Normalized to 40-hour week
+        const exposureFactor = weeklyExposure / 40;
 
-        // Age-based healing factor (decreases with age)
+        // Younger bodies heal better
         const healingFactor = this.age <= 30 ? 0.8 : 
                               this.age <= 50 ? 0.6 : 
                               this.age <= 65 ? 0.4 : 0.2;
 
-        // Condition severity factor
         const conditionSeverity = this.healthConditions.length * 0.1;
 
         const projections = {
-            '6months': {},
-            '1year': {},
-            '2years': {},
-            '5years': {},
-            '10years': {}
+            '6months': {}, '1year': {}, '2years': {}, '5years': {}, '10years': {}
         };
 
-        // Time multipliers for cumulative damage
+        // Damage compounds over time
         const timeFactors = {
-            '6months': 1.1,
-            '1year': 1.25,
-            '2years': 1.5,
-            '5years': 2.0,
-            '10years': 3.0
+            '6months': 1.1, '1year': 1.25, '2years': 1.5, '5years': 2.0, '10years': 3.0
         };
 
         for (const [joint, risk] of Object.entries(riskScores)) {
             for (const [period, timeFactor] of Object.entries(timeFactors)) {
-                // Calculate cumulative risk
                 let cumulativeRisk = risk * timeFactor * exposureFactor;
-                
-                // Reduce by healing factor
                 cumulativeRisk *= (1 - healingFactor * 0.3);
-                
-                // Add condition severity
                 cumulativeRisk *= (1 + conditionSeverity);
                 
-                // Age acceleration (damage accumulates faster with age)
+                // Damage accelerates as we age
                 if (this.age > 40) {
                     const yearsFromNow = parseInt(period) || 0.5;
                     const futureAge = this.age + yearsFromNow;
@@ -259,15 +197,11 @@ class PhysicsEngine {
         return projections;
     }
 
-    /**
-     * Generate personalized recommendations based on risk scores
-     * @param {Object} riskScores - Current risk scores
-     * @returns {Array<string>} Array of recommendation strings
-     */
+    // Generate advice based on risk levels and user's specific situation
     getRecommendations(riskScores) {
         const recommendations = [];
 
-        // Overall risk recommendations
+        // Overall risk level advice
         if (riskScores.overall >= 80) {
             recommendations.push("⚠️ CRITICAL: Your current activity poses significant risk. Consult a healthcare professional immediately.");
             recommendations.push("Consider complete rest or switching to a low-impact alternative activity.");
@@ -279,7 +213,7 @@ class PhysicsEngine {
             recommendations.push("Consider ergonomic adjustments to reduce strain.");
         }
 
-        // Knee-specific recommendations
+        // Joint-specific advice
         if (riskScores.knee >= 70) {
             recommendations.push("🦵 KNEE: Avoid deep squatting and prolonged kneeling. Use knee supports if necessary.");
             recommendations.push("Strengthen quadriceps and hamstrings to better support the knee joint.");
@@ -287,7 +221,6 @@ class PhysicsEngine {
             recommendations.push("🦵 KNEE: Maintain proper form during activities. Consider low-impact exercises like swimming.");
         }
 
-        // Spine-specific recommendations
         if (riskScores.spine >= 70) {
             recommendations.push("🔙 SPINE: Avoid heavy lifting and prolonged forward bending.");
             recommendations.push("Practice core strengthening exercises to support your lower back.");
@@ -295,7 +228,6 @@ class PhysicsEngine {
             recommendations.push("🔙 SPINE: Maintain neutral spine position. Use lumbar support when sitting.");
         }
 
-        // Hip-specific recommendations
         if (riskScores.hip >= 70) {
             recommendations.push("🦴 HIP: Limit activities requiring extreme hip flexion or rotation.");
             recommendations.push("Consider hip-strengthening exercises and stretching for hip flexors.");
@@ -303,7 +235,7 @@ class PhysicsEngine {
             recommendations.push("🦴 HIP: Include hip mobility exercises in your routine.");
         }
 
-        // Age-specific recommendations
+        // Age-specific tips
         if (this.age > 60) {
             recommendations.push("👴 AGE: Given your age, prioritize low-impact activities and ensure adequate recovery time.");
             recommendations.push("Consider calcium and vitamin D supplementation for bone health.");
@@ -311,7 +243,7 @@ class PhysicsEngine {
             recommendations.push("👤 AGE: Focus on maintaining flexibility and joint mobility through regular stretching.");
         }
 
-        // Health condition-specific recommendations
+        // Condition-specific advice
         if (this.healthConditions.includes('arthritis')) {
             recommendations.push("🏥 ARTHRITIS: Keep joints moving with gentle range-of-motion exercises. Apply heat before activity.");
         }
@@ -322,7 +254,7 @@ class PhysicsEngine {
             recommendations.push("🏥 DISC: Avoid twisting motions and heavy lifting. Practice McKenzie exercises.");
         }
 
-        // General wellness recommendations
+        // If risk is low, still give some general advice
         if (recommendations.length < 3) {
             recommendations.push("✅ Your current risk levels are within acceptable range. Maintain good posture habits.");
             recommendations.push("Continue regular physical activity while listening to your body's signals.");
@@ -334,11 +266,7 @@ class PhysicsEngine {
         return recommendations;
     }
 
-    /**
-     * Get risk level category
-     * @param {number} score - Risk score (0-100)
-     * @returns {string} Risk level category
-     */
+    // Quick risk level label
     getRiskLevel(score) {
         if (score >= 80) return 'critical';
         if (score >= 60) return 'high';
@@ -347,12 +275,7 @@ class PhysicsEngine {
         return 'minimal';
     }
 
-    /**
-     * Get comprehensive analysis summary
-     * @param {Object} postureAngles - Posture angles
-     * @param {number} loadWeight - External load
-     * @returns {Object} Complete analysis with forces, risks, projections, and recommendations
-     */
+    // Run all calculations at once and return everything
     getFullAnalysis(postureAngles, loadWeight = 0) {
         const jointForces = this.calculateJointForces(postureAngles, loadWeight);
         const riskScores = this.calculateRiskScores(jointForces);

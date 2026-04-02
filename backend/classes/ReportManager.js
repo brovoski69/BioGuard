@@ -1,35 +1,20 @@
-/**
- * ReportManager - Handles report generation and storage
- * Manages report creation, PDF upload, and retrieval
- */
+// Handles everything related to reports - creating them, storing PDFs, fetching history
 
 import { supabase } from './SupabaseClient.js';
 
 class ReportManager {
-    /**
-     * Generate and save a new report
-     * @param {string} userId - User UUID
-     * @param {string} sessionId - Session UUID
-     * @param {Object} reportData - Report data including recommendations, long_term_projection
-     * @returns {Promise<{report: Object|null, error: Error|null}>}
-     */
+    
+    // Create a new report from simulation results
     async generateReport(userId, sessionId, reportData) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
-            if (!sessionId) {
-                throw new Error('Session ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
+            if (!sessionId) throw new Error('Session ID is required');
 
             const { recommendations = [], long_term_projection = {}, pdf_url = null } = reportData;
 
-            // Validate recommendations
             if (!Array.isArray(recommendations)) {
                 throw new Error('Recommendations must be an array');
             }
-
-            // Validate long_term_projection
             if (typeof long_term_projection !== 'object') {
                 throw new Error('Long term projection must be an object');
             }
@@ -47,7 +32,6 @@ class ReportManager {
                 .single();
 
             if (error) throw error;
-
             return { report: data, error: null };
         } catch (error) {
             console.error('GenerateReport error:', error.message);
@@ -55,27 +39,14 @@ class ReportManager {
         }
     }
 
-    /**
-     * Upload PDF report to Supabase Storage
-     * @param {string} userId - User UUID
-     * @param {Blob} pdfBlob - PDF file blob
-     * @param {string} fileName - Optional custom file name
-     * @returns {Promise<{path: string|null, error: Error|null}>}
-     */
+    // Upload a PDF to Supabase storage - files go in userId/filename path
     async uploadPDF(userId, pdfBlob, fileName = null) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
-            if (!pdfBlob) {
-                throw new Error('PDF blob is required');
-            }
+            if (!userId) throw new Error('User ID is required');
+            if (!pdfBlob) throw new Error('PDF blob is required');
 
-            // Generate file name if not provided
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const finalFileName = fileName || `report_${timestamp}.pdf`;
-            
-            // File path: userId/filename (for RLS policy)
             const filePath = `${userId}/${finalFileName}`;
 
             const { data, error } = await supabase.storage
@@ -87,7 +58,6 @@ class ReportManager {
                 });
 
             if (error) throw error;
-
             return { path: data.path, error: null };
         } catch (error) {
             console.error('UploadPDF error:', error.message);
@@ -95,24 +65,16 @@ class ReportManager {
         }
     }
 
-    /**
-     * Get signed URL for PDF download
-     * @param {string} filePath - File path in storage
-     * @param {number} expiresIn - URL expiration time in seconds (default: 1 hour)
-     * @returns {Promise<{url: string|null, error: Error|null}>}
-     */
+    // Get a temporary download link for a PDF (expires in 1 hour by default)
     async getReportURL(filePath, expiresIn = 3600) {
         try {
-            if (!filePath) {
-                throw new Error('File path is required');
-            }
+            if (!filePath) throw new Error('File path is required');
 
             const { data, error } = await supabase.storage
                 .from('reports')
                 .createSignedUrl(filePath, expiresIn);
 
             if (error) throw error;
-
             return { url: data.signedUrl, error: null };
         } catch (error) {
             console.error('GetReportURL error:', error.message);
@@ -120,17 +82,10 @@ class ReportManager {
         }
     }
 
-    /**
-     * Get all reports for a user
-     * @param {string} userId - User UUID
-     * @param {Object} options - Query options (limit, offset)
-     * @returns {Promise<{reports: Array|null, error: Error|null}>}
-     */
+    // Fetch all reports for a user - includes related session data
     async getReports(userId, options = {}) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { limit = 50, offset = 0 } = options;
 
@@ -151,7 +106,6 @@ class ReportManager {
                 .range(offset, offset + limit - 1);
 
             if (error) throw error;
-
             return { reports: data, error: null };
         } catch (error) {
             console.error('GetReports error:', error.message);
@@ -159,16 +113,10 @@ class ReportManager {
         }
     }
 
-    /**
-     * Get a single report by ID
-     * @param {string} reportId - Report UUID
-     * @returns {Promise<{report: Object|null, error: Error|null}>}
-     */
+    // Get one report with full session details
     async getReport(reportId) {
         try {
-            if (!reportId) {
-                throw new Error('Report ID is required');
-            }
+            if (!reportId) throw new Error('Report ID is required');
 
             const { data, error } = await supabase
                 .from('reports')
@@ -188,7 +136,6 @@ class ReportManager {
                 .single();
 
             if (error) throw error;
-
             return { report: data, error: null };
         } catch (error) {
             console.error('GetReport error:', error.message);
@@ -196,17 +143,10 @@ class ReportManager {
         }
     }
 
-    /**
-     * Update report with PDF URL
-     * @param {string} reportId - Report UUID
-     * @param {string} pdfUrl - PDF file URL/path
-     * @returns {Promise<{report: Object|null, error: Error|null}>}
-     */
+    // Link a PDF file to an existing report
     async updateReportPDF(reportId, pdfUrl) {
         try {
-            if (!reportId) {
-                throw new Error('Report ID is required');
-            }
+            if (!reportId) throw new Error('Report ID is required');
 
             const { data, error } = await supabase
                 .from('reports')
@@ -216,7 +156,6 @@ class ReportManager {
                 .single();
 
             if (error) throw error;
-
             return { report: data, error: null };
         } catch (error) {
             console.error('UpdateReportPDF error:', error.message);
@@ -224,33 +163,21 @@ class ReportManager {
         }
     }
 
-    /**
-     * Delete a report and its associated PDF
-     * @param {string} reportId - Report UUID
-     * @param {string} pdfPath - PDF file path (optional)
-     * @returns {Promise<{success: boolean, error: Error|null}>}
-     */
+    // Remove a report - also deletes the PDF file if a path is given
     async deleteReport(reportId, pdfPath = null) {
         try {
-            if (!reportId) {
-                throw new Error('Report ID is required');
-            }
+            if (!reportId) throw new Error('Report ID is required');
 
-            // Delete PDF from storage if path provided
             if (pdfPath) {
-                await supabase.storage
-                    .from('reports')
-                    .remove([pdfPath]);
+                await supabase.storage.from('reports').remove([pdfPath]);
             }
 
-            // Delete report from database
             const { error } = await supabase
                 .from('reports')
                 .delete()
                 .eq('id', reportId);
 
             if (error) throw error;
-
             return { success: true, error: null };
         } catch (error) {
             console.error('DeleteReport error:', error.message);
@@ -258,16 +185,10 @@ class ReportManager {
         }
     }
 
-    /**
-     * List all PDF files for a user from storage
-     * @param {string} userId - User UUID
-     * @returns {Promise<{files: Array|null, error: Error|null}>}
-     */
+    // List all PDF files a user has uploaded
     async listUserPDFs(userId) {
         try {
-            if (!userId) {
-                throw new Error('User ID is required');
-            }
+            if (!userId) throw new Error('User ID is required');
 
             const { data, error } = await supabase.storage
                 .from('reports')
@@ -277,7 +198,6 @@ class ReportManager {
                 });
 
             if (error) throw error;
-
             return { files: data, error: null };
         } catch (error) {
             console.error('ListUserPDFs error:', error.message);

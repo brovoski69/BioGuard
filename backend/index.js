@@ -1,22 +1,15 @@
-/**
- * BioGuard Backend - Main Entry Point
- * Exports all classes for use throughout the application
- */
+// BioGuard Backend - ties everything together into one easy-to-use interface
 
-// Core client
+// Export individual classes for direct use
 export { default as SupabaseClient, supabase } from './classes/SupabaseClient.js';
-
-// Manager classes
 export { default as AuthManager } from './classes/AuthManager.js';
 export { default as ProfileManager } from './classes/ProfileManager.js';
 export { default as SessionManager } from './classes/SessionManager.js';
 export { default as ReportManager } from './classes/ReportManager.js';
-
-// Core simulation classes
 export { default as PhysicsEngine } from './classes/PhysicsEngine.js';
 export { default as ScenarioManager } from './classes/ScenarioManager.js';
 
-// Import classes for BioGuard main class (ES module compatible)
+// Need these for the BioGuard class below
 import AuthManager from './classes/AuthManager.js';
 import ProfileManager from './classes/ProfileManager.js';
 import SessionManager from './classes/SessionManager.js';
@@ -24,13 +17,10 @@ import ReportManager from './classes/ReportManager.js';
 import PhysicsEngine from './classes/PhysicsEngine.js';
 import ScenarioManager from './classes/ScenarioManager.js';
 
-/**
- * BioGuard - Main Application Class
- * Provides a unified interface for all backend operations
- */
+// Main class that wraps all the managers - use this for convenience
 class BioGuard {
     constructor() {
-        // Lazy initialization - managers created on first access
+        // Don't create managers until they're actually needed
         this._authManager = null;
         this._profileManager = null;
         this._sessionManager = null;
@@ -40,87 +30,56 @@ class BioGuard {
         this._currentProfile = null;
     }
 
-    // Getters for lazy initialization
+    // Lazy getters - manager instances created on first access
     get auth() {
-        if (!this._authManager) {
-            this._authManager = new AuthManager();
-        }
+        if (!this._authManager) this._authManager = new AuthManager();
         return this._authManager;
     }
 
     get profiles() {
-        if (!this._profileManager) {
-            this._profileManager = new ProfileManager();
-        }
+        if (!this._profileManager) this._profileManager = new ProfileManager();
         return this._profileManager;
     }
 
     get sessions() {
-        if (!this._sessionManager) {
-            this._sessionManager = new SessionManager();
-        }
+        if (!this._sessionManager) this._sessionManager = new SessionManager();
         return this._sessionManager;
     }
 
     get reports() {
-        if (!this._reportManager) {
-            this._reportManager = new ReportManager();
-        }
+        if (!this._reportManager) this._reportManager = new ReportManager();
         return this._reportManager;
     }
 
     get scenarios() {
-        if (!this._scenarioManager) {
-            this._scenarioManager = new ScenarioManager();
-        }
+        if (!this._scenarioManager) this._scenarioManager = new ScenarioManager();
         return this._scenarioManager;
     }
 
-    /**
-     * Initialize physics engine with user profile
-     * @param {Object} profileData - User profile data
-     * @returns {PhysicsEngine}
-     */
+    // Physics engine needs profile data, so it can't be lazy-loaded without context
     initPhysicsEngine(profileData) {
         this._physicsEngine = new PhysicsEngine(profileData);
         this._currentProfile = profileData;
         return this._physicsEngine;
     }
 
-    /**
-     * Get current physics engine instance
-     * @returns {PhysicsEngine|null}
-     */
     get physics() {
         return this._physicsEngine;
     }
 
-    /**
-     * Run a complete simulation flow
-     * @param {string} userId - User ID
-     * @param {string} scenarioName - Scenario to simulate
-     * @param {Object} customAngles - Optional custom angles override
-     * @param {number} loadWeight - External load weight
-     * @returns {Promise<Object>} Complete simulation results
-     */
+    // One-shot simulation: load scenario, run calculations, return everything
     async runSimulation(userId, scenarioName, customAngles = null, loadWeight = 0) {
-        // Get user profile if physics engine not initialized
+        // Initialize physics if not done yet
         if (!this._physicsEngine) {
             const { profile } = await this.profiles.getProfile(userId);
-            if (!profile) {
-                throw new Error('User profile not found');
-            }
+            if (!profile) throw new Error('User profile not found');
             this.initPhysicsEngine(profile);
         }
 
-        // Load scenario
         const { scenario, error } = this.scenarios.loadScenario(scenarioName);
         if (error) throw new Error(error);
 
-        // Use custom angles or scenario defaults
         const postureAngles = customAngles || scenario.postureAngles;
-
-        // Run physics calculations
         const analysis = this._physicsEngine.getFullAnalysis(postureAngles, loadWeight);
 
         return {
@@ -132,15 +91,8 @@ class BioGuard {
         };
     }
 
-    /**
-     * Save simulation and generate report
-     * @param {string} userId - User ID
-     * @param {Object} simulationResults - Results from runSimulation
-     * @param {number} duration - Activity duration in minutes
-     * @returns {Promise<Object>} Saved session and report
-     */
+    // Save simulation results to DB and create a report in one go
     async saveSimulationWithReport(userId, simulationResults, duration = 30) {
-        // Save session
         const sessionData = {
             scenario: simulationResults.scenario,
             posture_angles: simulationResults.postureAngles,
@@ -153,16 +105,13 @@ class BioGuard {
         const { session, error: sessionError } = await this.sessions.saveSession(userId, sessionData);
         if (sessionError) throw sessionError;
 
-        // Generate report
         const reportData = {
             recommendations: simulationResults.recommendations,
             long_term_projection: simulationResults.longTermProjection
         };
 
         const { report, error: reportError } = await this.reports.generateReport(
-            userId, 
-            session.id, 
-            reportData
+            userId, session.id, reportData
         );
         if (reportError) throw reportError;
 
@@ -170,6 +119,5 @@ class BioGuard {
     }
 }
 
-// Export singleton instance
 export const bioguard = new BioGuard();
 export default BioGuard;
