@@ -11,8 +11,12 @@ import PhysicsEngine from '../classes/PhysicsEngine.js';
 import ScenarioLoader from '../classes/ScenarioLoader.js';
 import { JOINTS, JOINT_LABELS } from '../utils/constants.js';
 import { loadFromStorage, saveToStorage, getRiskColor, formatForce } from '../utils/helpers.js';
+import { initNavbarAuth, requireAuth } from '../utils/auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ── Initialize navbar auth ───────────────────────────────
+    initNavbarAuth();
+    
     // ── Load Profile ─────────────────────────────────────────
     let profile = loadFromStorage('profile');
     const isDemo = new URLSearchParams(window.location.search).get('demo') === 'true';

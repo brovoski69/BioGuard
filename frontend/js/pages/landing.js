@@ -4,9 +4,33 @@
 
 import ParticleSystem from '../classes/ParticleSystem.js';
 import AnimationManager from '../classes/AnimationManager.js';
+import { initNavbarAuth, isAuthenticated, hasProfile } from '../utils/auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ── Initialize navbar auth ───────────────────────────────
+    initNavbarAuth();
+    
     const anim = new AnimationManager();
+    
+    // ── Update CTA buttons based on auth state ───────────────
+    const startBtn = document.getElementById('btnStartSim');
+    const navGetStarted = document.querySelector('.nav-links .btn-primary');
+    
+    if (isAuthenticated()) {
+        // If logged in, go directly to profile or simulation
+        const targetPage = hasProfile() ? 'simulation.html' : 'profile.html';
+        if (startBtn) startBtn.href = targetPage;
+        if (navGetStarted && !navGetStarted.closest('.nav-auth')) {
+            navGetStarted.href = targetPage;
+            navGetStarted.textContent = hasProfile() ? 'Open Simulation' : 'Complete Profile';
+        }
+    } else {
+        // If not logged in, go to auth page
+        if (startBtn) startBtn.href = 'auth.html';
+        if (navGetStarted && !navGetStarted.closest('.nav-auth')) {
+            navGetStarted.href = 'auth.html';
+        }
+    }
 
     // ── Particle System ──────────────────────────────────────
     const canvas = document.getElementById('particleCanvas');

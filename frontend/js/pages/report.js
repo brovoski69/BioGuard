@@ -7,8 +7,12 @@ import ChartManager from '../classes/ChartManager.js';
 import AnimationManager from '../classes/AnimationManager.js';
 import { JOINTS, JOINT_LABELS, JOINT_SAFE_LIMITS } from '../utils/constants.js';
 import { loadFromStorage, getRiskColor, getRiskLevel, formatForce, formatDuration } from '../utils/helpers.js';
+import { initNavbarAuth } from '../utils/auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ── Initialize navbar auth ───────────────────────────────
+    initNavbarAuth();
+    
     const charts = new ChartManager();
     const anim = new AnimationManager();
     // Report data is loaded from localStorage (saved by simulation page)

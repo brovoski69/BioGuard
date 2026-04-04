@@ -3,17 +3,27 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { HEALTH_CONDITIONS } from '../utils/constants.js';
-import { saveToStorage, calculateBMI } from '../utils/helpers.js';
+import { saveToStorage, loadFromStorage, calculateBMI } from '../utils/helpers.js';
+import { initNavbarAuth, requireAuth, getCurrentUser } from '../utils/auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ── Initialize navbar auth ───────────────────────────────
+    initNavbarAuth();
+    
+    // ── Get current user ─────────────────────────────────────
+    const user = getCurrentUser();
+    
+    // ── Load existing profile if any ─────────────────────────
+    const existingProfile = loadFromStorage('profile');
+    
     // Profile state is managed locally and saved to localStorage
     const state = {
-        name: '',
-        age: 25,
-        weight: 70,
-        height: 170,
-        body_type: '',
-        health_conditions: []
+        name: existingProfile?.name || user?.name || '',
+        age: existingProfile?.age || 25,
+        weight: existingProfile?.weight || 70,
+        height: existingProfile?.height || 170,
+        body_type: existingProfile?.body_type || '',
+        health_conditions: existingProfile?.health_conditions || []
     };
 
     // ── Form Prevention ──────────────────────────────────────
@@ -57,14 +67,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Name Input ───────────────────────────────────────────
     const nameInput = document.getElementById('nameInput');
     if (nameInput) {
+        // Pre-populate if we have existing data
+        if (state.name) {
+            nameInput.value = state.name;
+        }
         nameInput.addEventListener('input', () => {
             state.name = nameInput.value.trim();
             updateProgress();
         });
     }
+    
+    // ── Pre-populate sliders if existing profile ─────────────
+    if (existingProfile) {
+        const ageSlider = document.getElementById('ageSlider');
+        const weightSlider = document.getElementById('weightSlider');
+        const heightSlider = document.getElementById('heightSlider');
+        
+        if (ageSlider) {
+            ageSlider.value = state.age;
+            ageSlider.dispatchEvent(new Event('input'));
+        }
+        if (weightSlider) {
+            weightSlider.value = state.weight;
+            weightSlider.dispatchEvent(new Event('input'));
+        }
+        if (heightSlider) {
+            heightSlider.value = state.height;
+            heightSlider.dispatchEvent(new Event('input'));
+        }
+    }
 
     // ── Body Type Cards ──────────────────────────────────────
     document.querySelectorAll('.body-type-card').forEach(card => {
+        // Pre-select if existing profile
+        if (state.body_type && card.dataset.type === state.body_type) {
+            card.classList.add('selected');
+            card.setAttribute('aria-checked', 'true');
+            const label = document.getElementById('bodyTypeLabel');
+            if (label) label.textContent = state.body_type.toUpperCase();
+        }
+        
         card.addEventListener('click', () => {
             document.querySelectorAll('.body-type-card').forEach(c => {
                 c.classList.remove('selected');
@@ -89,11 +131,18 @@ document.addEventListener('DOMContentLoaded', () => {
             chip.className = 'health-chip';
             chip.dataset.condition = cond.id;
             chip.textContent = cond.name; // Use textContent for safety and clean look
+            
+            // Pre-select if existing profile
+            if (state.health_conditions.includes(cond.id)) {
+                chip.classList.add('active');
+            }
 
             chip.addEventListener('click', () => {
                 chip.classList.toggle('active');
                 if (chip.classList.contains('active')) {
-                    state.health_conditions.push(cond.id);
+                    if (!state.health_conditions.includes(cond.id)) {
+                        state.health_conditions.push(cond.id);
+                    }
                 } else {
                     state.health_conditions = state.health_conditions.filter(c => c !== cond.id);
                 }
@@ -103,6 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chipsContainer.appendChild(chip);
         });
+        
+        // Update condition highlights if pre-existing
+        if (state.health_conditions.length > 0) {
+            updateConditionHighlights();
+        }
     }
 
     // ── Body Silhouette Drawing ──────────────────────────────
