@@ -11,6 +11,7 @@ import { loadFromStorage, getRiskColor, getRiskLevel, formatForce, formatDuratio
 document.addEventListener('DOMContentLoaded', () => {
     const charts = new ChartManager();
     const anim = new AnimationManager();
+    // Report data is loaded from localStorage (saved by simulation page)
 
     // ── Load Session Data ────────────────────────────────────
     const session = loadFromStorage('lastSession');
@@ -18,16 +19,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!session || !session.analysis) {
         // No data — show placeholder
-        document.querySelector('.report-container').innerHTML = `
-            <div style="text-align:center; padding:120px 24px;">
-                <div style="font-size:64px; margin-bottom:24px; opacity:0.3;">📋</div>
-                <h2 style="font-family:var(--font-display); color:var(--text-dim); letter-spacing:3px; margin-bottom:16px;">NO REPORT DATA</h2>
-                <p style="color:var(--text-muted); margin-bottom:32px; font-family:var(--font-mono); font-size:12px; letter-spacing:1px;">
-                    Run a simulation first to generate a report.
-                </p>
-                <a href="simulation.html" class="btn btn-primary">▶ GO TO SIMULATION</a>
-            </div>
-        `;
+        const container = document.querySelector('.report-container');
+        if (container) {
+            container.innerHTML = ''; // Clear
+            const placeholder = document.createElement('div');
+            placeholder.style.textAlign = 'center';
+            placeholder.style.padding = '120px 24px';
+            
+            const icon = document.createElement('div');
+            icon.style.fontSize = '64px';
+            icon.style.marginBottom = '24px';
+            icon.style.opacity = '0.3';
+            icon.textContent = '📋';
+            
+            const title = document.createElement('h2');
+            title.style.fontFamily = 'var(--font-display)';
+            title.style.color = 'var(--text-dim)';
+            title.style.letterSpacing = '3px';
+            title.style.marginBottom = '16px';
+            title.textContent = 'NO REPORT DATA';
+            
+            const text = document.createElement('p');
+            text.style.color = 'var(--text-muted)';
+            text.style.marginBottom = '32px';
+            text.style.fontFamily = 'var(--font-mono)';
+            text.style.fontSize = '12px';
+            text.style.letterSpacing = '1px';
+            text.textContent = 'Run a simulation first to generate a report.';
+            
+            const link = document.createElement('a');
+            link.href = 'simulation.html';
+            link.className = 'btn btn-primary';
+            link.textContent = '▶ GO TO SIMULATION';
+            
+            placeholder.appendChild(icon);
+            placeholder.appendChild(title);
+            placeholder.appendChild(text);
+            placeholder.appendChild(link);
+            container.appendChild(placeholder);
+        }
         return;
     }
 
@@ -49,7 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setText('rpBodyType', (rp.bodyType || '—').charAt(0).toUpperCase() + (rp.bodyType || '').slice(1));
 
     // ── Simulation Summary ───────────────────────────────────
-    setText('ssScenario', scenario ? `${scenario.icon} ${scenario.name}` : 'Custom');
+    // Modernized: No emojis in scenario name
+    const scenarioName = scenario ? scenario.name : 'Custom Setup';
+    setText('ssScenario', scenarioName);
     setText('ssDuration', formatDuration(duration || 60));
     setText('ssLoad', `${loadWeight || 0} kg`);
     setText('ssAngles', angles ? `T:${angles.trunk}° K:${angles.knee}° H:${angles.hip}°` : '—');
@@ -67,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Joint Accordion ──────────────────────────────────────
     const accordion = document.getElementById('jointAccordion');
     if (accordion) {
+        accordion.innerHTML = ''; // Clear previous
         JOINTS.forEach(joint => {
             const score = riskScores[joint] || 0;
             const force = jointForces[joint] || 0;
@@ -82,51 +115,107 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const item = document.createElement('div');
             item.className = 'accordion-item';
-            item.innerHTML = `
-                <button class="accordion-header">
-                    <div class="joint-header-info">
-                        <div class="joint-status-dot" style="background:${level.color}; box-shadow:0 0 8px ${level.glow};"></div>
-                        <span class="joint-header-name">${JOINT_LABELS[joint]}</span>
-                        <span class="joint-header-score" style="color:${level.color}">${score}% risk</span>
-                    </div>
-                    <span class="accordion-arrow">▼</span>
-                </button>
-                <div class="accordion-body">
-                    <div class="accordion-content">
-                        <div class="joint-detail-grid">
-                            <div class="joint-detail-item">
-                                <div class="joint-detail-label">Force Applied</div>
-                                <div class="joint-detail-value">${formatForce(force)}</div>
-                            </div>
-                            <div class="joint-detail-item">
-                                <div class="joint-detail-label">Risk Score</div>
-                                <div class="joint-detail-value" style="color:${level.color}">${score}/100</div>
-                            </div>
-                            <div class="joint-detail-item">
-                                <div class="joint-detail-label">Safe Limit</div>
-                                <div class="joint-detail-value">${formatForce(safeLimit)}</div>
-                            </div>
-                            <div class="joint-detail-item">
-                                <div class="joint-detail-label">Utilization</div>
-                                <div class="joint-detail-value" style="color:${utilization > 80 ? '#ff3b3b' : utilization > 50 ? '#ffd700' : '#00ff88'}">${utilization}%</div>
-                            </div>
-                        </div>
-                        <div class="joint-detail-item" style="margin-top:8px;">
-                            <div class="joint-detail-label">Status</div>
-                            <div class="status-badge ${riskLevel}" style="margin-top:6px;">${level.label}</div>
-                        </div>
-                        ${jointRecs.length > 0 ? `
-                            <div class="joint-detail-recs" style="margin-top:12px;">
-                                <div class="joint-detail-label" style="margin-bottom:6px;">Specific Recommendations</div>
-                                ${jointRecs.map(r => `<div style="padding:4px 0;font-size:12px;color:var(--text-dim);">${r}</div>`).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
+            
+            const header = document.createElement('button');
+            header.className = 'accordion-header';
+            
+            const info = document.createElement('div');
+            info.className = 'joint-header-info';
+            
+            const dot = document.createElement('div');
+            dot.className = 'joint-status-dot';
+            dot.style.background = level.color;
+            dot.style.boxShadow = `0 0 8px ${level.glow}`;
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'joint-header-name';
+            nameSpan.textContent = JOINT_LABELS[joint];
+            
+            const scoreSpan = document.createElement('span');
+            scoreSpan.className = 'joint-header-score';
+            scoreSpan.style.color = level.color;
+            scoreSpan.textContent = `${score}% risk`;
+            
+            const arrow = document.createElement('span');
+            arrow.className = 'accordion-arrow';
+            arrow.textContent = '▼';
+            
+            info.appendChild(dot);
+            info.appendChild(nameSpan);
+            info.appendChild(scoreSpan);
+            header.appendChild(info);
+            header.appendChild(arrow);
+            
+            const body = document.createElement('div');
+            body.className = 'accordion-body';
+            
+            const content = document.createElement('div');
+            content.className = 'accordion-content';
+            
+            const grid = document.createElement('div');
+            grid.className = 'joint-detail-grid';
+            
+            const createDetail = (label, value, color) => {
+                const d = document.createElement('div');
+                d.className = 'joint-detail-item';
+                const l = document.createElement('div');
+                l.className = 'joint-detail-label';
+                l.textContent = label;
+                const v = document.createElement('div');
+                v.className = 'joint-detail-value';
+                v.textContent = value;
+                if (color) v.style.color = color;
+                d.appendChild(l);
+                d.appendChild(v);
+                return d;
+            };
+            
+            grid.appendChild(createDetail('Force Applied', formatForce(force)));
+            grid.appendChild(createDetail('Risk Score', `${score}/100`, level.color));
+            grid.appendChild(createDetail('Safe Limit', formatForce(safeLimit)));
+            grid.appendChild(createDetail('Utilization', `${utilization}%`, utilization > 80 ? '#ff3b3b' : utilization > 50 ? '#ffd700' : '#00ff88'));
+            
+            const statusItem = document.createElement('div');
+            statusItem.className = 'joint-detail-item';
+            statusItem.style.marginTop = '8px';
+            const statusLabel = document.createElement('div');
+            statusLabel.className = 'joint-detail-label';
+            statusLabel.textContent = 'Status';
+            const badge = document.createElement('div');
+            badge.className = `status-badge ${level.label.toLowerCase().replace(' ', '-')}`;
+            badge.style.marginTop = '6px';
+            badge.textContent = level.label.toUpperCase();
+            statusItem.appendChild(statusLabel);
+            statusItem.appendChild(badge);
+            
+            content.appendChild(grid);
+            content.appendChild(statusItem);
+            
+            if (jointRecs.length > 0) {
+                const recsWrap = document.createElement('div');
+                recsWrap.className = 'joint-detail-recs';
+                recsWrap.style.marginTop = '12px';
+                const recsLabel = document.createElement('div');
+                recsLabel.className = 'joint-detail-label';
+                recsLabel.style.marginBottom = '6px';
+                recsLabel.textContent = 'Specific Recommendations';
+                recsWrap.appendChild(recsLabel);
+                
+                jointRecs.forEach(r => {
+                    const rDiv = document.createElement('div');
+                    rDiv.style.padding = '4px 0';
+                    rDiv.style.fontSize = '12px';
+                    rDiv.style.color = 'var(--text-dim)';
+                    rDiv.textContent = r;
+                    recsWrap.appendChild(rDiv);
+                });
+                content.appendChild(recsWrap);
+            }
+            
+            body.appendChild(content);
+            item.appendChild(header);
+            item.appendChild(body);
 
-            // Toggle accordion
-            const header = item.querySelector('.accordion-header');
             header.addEventListener('click', () => {
                 item.classList.toggle('open');
             });
@@ -160,21 +249,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Recommendations ──────────────────────────────────────
     const recsList = document.getElementById('recommendationsList');
     if (recsList && recommendations) {
+        recsList.innerHTML = ''; // Clear previous
         recommendations.forEach(rec => {
             const card = document.createElement('div');
             const isDanger = rec.includes('CRITICAL') || rec.includes('HIGH RISK');
             const isWarning = rec.includes('⚠️') || rec.includes('MODERATE');
             card.className = `recommendation-card${isDanger ? ' danger' : isWarning ? ' warning' : ''}`;
 
-            // Extract emoji icon
-            const emojiMatch = rec.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?)/u);
-            const icon = emojiMatch ? emojiMatch[0] : '💡';
-            const text = emojiMatch ? rec.slice(emojiMatch[0].length).trim() : rec;
+            // Modernized: No emojis in text
+            const textContent = rec.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+            
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'rec-icon';
+            iconSpan.textContent = isDanger ? '!' : isWarning ? '?' : '*';
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'rec-text';
+            textSpan.textContent = textContent;
 
-            card.innerHTML = `
-                <span class="rec-icon">${icon}</span>
-                <span class="rec-text">${text}</span>
-            `;
+            card.appendChild(iconSpan);
+            card.appendChild(textSpan);
             recsList.appendChild(card);
         });
 
@@ -187,12 +281,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pdfBtn) {
         pdfBtn.addEventListener('click', () => {
             pdfBtn.classList.add('loading');
+            const originalText = pdfBtn.textContent;
             pdfBtn.textContent = '';
 
-            // Use browser print as PDF fallback
             setTimeout(() => {
                 pdfBtn.classList.remove('loading');
-                pdfBtn.textContent = '📥 Download PDF';
+                pdfBtn.textContent = originalText;
                 window.print();
             }, 800);
         });
@@ -202,43 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareBtn = document.getElementById('btnShareReport');
     if (shareBtn) {
         shareBtn.addEventListener('click', () => {
-            // Copy current URL to clipboard
+            const originalText = shareBtn.textContent;
             navigator.clipboard.writeText(window.location.href).then(() => {
-                const original = shareBtn.textContent;
                 shareBtn.textContent = '✓ Link Copied!';
                 shareBtn.style.borderColor = 'var(--success-green)';
                 shareBtn.style.color = 'var(--success-green)';
                 setTimeout(() => {
-                    shareBtn.textContent = original;
+                    shareBtn.textContent = originalText;
                     shareBtn.style.borderColor = '';
                     shareBtn.style.color = '';
-                }, 2000);
-            }).catch(() => {
-                // Fallback
-                const el = document.createElement('textarea');
-                el.value = window.location.href;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                shareBtn.textContent = '✓ Link Copied!';
-                setTimeout(() => {
-                    shareBtn.textContent = '🔗 Share Report';
                 }, 2000);
             });
         });
     }
-
-    // ── Scroll Animation Observer ────────────────────────────
-    const cards = document.querySelectorAll('.report-card');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animationPlayState = 'running';
-            }
-        });
-    }, { threshold: 0.1 });
-    cards.forEach(card => observer.observe(card));
 
     // ── Helper ───────────────────────────────────────────────
     function setText(id, value) {

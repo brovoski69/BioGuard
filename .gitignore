@@ -22,6 +22,9 @@ npm-debug.log*
 dist/
 build/
 
-
+# Documentation files (local only)
 Backend_Readme.md
 SUPABASE_SETUP_GUIDE.md
+FRONTEND_FIXES.md
+FRONTEND_PROMPT.md
+INTEGRATION_STATUS.md

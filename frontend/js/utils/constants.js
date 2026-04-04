@@ -131,20 +131,20 @@ export const SCENARIO_CATEGORIES = [
 
 // ── Health Conditions ────────────────────────────────────────
 export const HEALTH_CONDITIONS = [
-    { id: 'arthritis',       label: 'Arthritis',       icon: '🦴' },
-    { id: 'osteoporosis',    label: 'Osteoporosis',    icon: '🦷' },
-    { id: 'herniated_disc',  label: 'Herniated Disc',  icon: '💿' },
-    { id: 'knee_injury',     label: 'Knee Injury',     icon: '🦵' },
-    { id: 'hip_replacement', label: 'Hip Replacement', icon: '🔩' },
-    { id: 'obesity',         label: 'Obesity',         icon: '⚖️' },
-    { id: 'scoliosis',       label: 'Scoliosis',      icon: '🔀' },
-    { id: 'sciatica',        label: 'Sciatica',        icon: '⚡' },
-    { id: 'carpal_tunnel',   label: 'Carpal Tunnel',   icon: '🖐️' },
-    { id: 'tendonitis',      label: 'Tendonitis',      icon: '🩹' },
-    { id: 'bursitis',        label: 'Bursitis',        icon: '💧' },
-    { id: 'fibromyalgia',    label: 'Fibromyalgia',    icon: '🌡️' },
-    { id: 'none',            label: 'None',            icon: '✅' }
+    { id: 'arthritis', name: 'Arthritis', affected: ['knee', 'hip', 'spine'] },
+    { id: 'osteoporosis', name: 'Osteoporosis', affected: ['spine', 'hip'] },
+    { id: 'herniated_disc', name: 'Herniated Disc', affected: ['spine'] },
+    { id: 'knee_injury', name: 'Previous Knee Injury', affected: ['knee'] },
+    { id: 'hip_replacement', name: 'Hip Replacement', affected: ['hip'] },
+    { id: 'obesity', name: 'Obesity', affected: ['knee', 'hip', 'ankle'] },
+    { id: 'scoliosis', name: 'Scoliosis', affected: ['spine'] },
+    { id: 'sciatica', name: 'Sciatica', affected: ['spine', 'hip'] },
+    { id: 'carpal_tunnel', name: 'Carpal Tunnel', affected: ['shoulder'] },
+    { id: 'tendonitis', name: 'Tendonitis', affected: ['shoulder', 'knee'] },
+    { id: 'bursitis', name: 'Bursitis', affected: ['shoulder', 'hip', 'knee'] },
+    { id: 'fibromyalgia', name: 'Fibromyalgia', affected: ['spine', 'hip', 'knee', 'shoulder'] }
 ];
+// Note: 'none' should be handled as empty array, not as a condition
 
 // ── Body Types ───────────────────────────────────────────────
 export const BODY_TYPES = [

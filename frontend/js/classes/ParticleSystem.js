@@ -13,8 +13,9 @@ export default class ParticleSystem {
         this.animId = null;
         this.running = false;
 
+        this._resizeHandler = () => this._resize();
+        window.addEventListener('resize', this._resizeHandler);
         this._resize();
-        window.addEventListener('resize', () => this._resize());
     }
 
     _resize() {
@@ -171,6 +172,8 @@ export default class ParticleSystem {
 
     destroy() {
         this.stop();
+        window.removeEventListener('resize', this._resizeHandler);
         this.particles = [];
+        this.ctx = null;
     }
 }

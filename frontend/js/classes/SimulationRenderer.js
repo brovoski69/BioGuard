@@ -436,7 +436,7 @@ export default class SimulationRenderer {
         // Color body parts near high-risk joints
         const defaultColor = new THREE.Color(0xd8d0c4);
         this.bodyGroup.children.forEach(mesh => {
-            if (!mesh.userData.isTracked && !mesh.userData.isRing && mesh.material && !mesh.material.depthWrite === true) {
+            if (!mesh.userData.isTracked && !mesh.userData.isRing && mesh.material && mesh.material.depthWrite === true) {
                 // Reset to default if not a tracked joint
                 if (mesh.material.color && mesh.material.opacity === 1) {
                     // Gradually blend back to default
@@ -484,7 +484,7 @@ export default class SimulationRenderer {
     }
 
     // ── Fix-It Mode ──────────────────────────────────────────
-    enableFixItMode(enabled) {
+    updateFixItMode(enabled) {
         this.fixItMode = enabled;
 
         if (this.ghostBody) {

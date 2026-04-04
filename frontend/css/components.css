@@ -1,7 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    BioGuard — Reusable Component Styles
    ═══════════════════════════════════════════════════════════════ */
-
 /* ── Navigation Bar ────────────────────────────────────────── */
 .navbar {
     position: fixed;
@@ -20,8 +19,54 @@
 
 .navbar.scrolled {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-bottom-color: var(--glass-border);
+}
+
+/* === ACCESSIBILITY: Focus States & Helpers === */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.btn:focus-visible,
+.range-slider:focus-visible,
+.filter-pill:focus-visible,
+.scenario-card:focus-visible,
+.body-type-card:focus-visible,
+.health-chip:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 4px;
+}
+
+.input-glow input:focus-visible {
+    outline: none; /* Already has glow-line */
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent-cyan);
+    color: var(--bg-deep);
+    padding: 8px 16px;
+    z-index: 9999;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
     border-bottom-color: var(--glass-border);
 }
 

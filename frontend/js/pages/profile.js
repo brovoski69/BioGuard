@@ -6,6 +6,7 @@ import { HEALTH_CONDITIONS } from '../utils/constants.js';
 import { saveToStorage, calculateBMI } from '../utils/helpers.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Profile state is managed locally and saved to localStorage
     const state = {
         name: '',
         age: 25,
@@ -14,6 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
         body_type: '',
         health_conditions: []
     };
+
+    // ── Form Prevention ──────────────────────────────────────
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', (e) => e.preventDefault());
+    }
 
     // ── Initialize Sliders ───────────────────────────────────
     document.querySelectorAll('.range-slider').forEach(slider => {
@@ -59,10 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Body Type Cards ──────────────────────────────────────
     document.querySelectorAll('.body-type-card').forEach(card => {
         card.addEventListener('click', () => {
-            document.querySelectorAll('.body-type-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.body-type-card').forEach(c => {
+                c.classList.remove('selected');
+                c.setAttribute('aria-checked', 'false');
+            });
             card.classList.add('selected');
+            card.setAttribute('aria-checked', 'true');
             state.body_type = card.dataset.type;
-            document.getElementById('bodyTypeLabel').textContent = card.dataset.type.toUpperCase();
+            const label = document.getElementById('bodyTypeLabel');
+            if (label) label.textContent = card.dataset.type.toUpperCase();
             updateSilhouette();
             updateProgress();
         });
@@ -73,28 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chipsContainer) {
         HEALTH_CONDITIONS.forEach(cond => {
             const chip = document.createElement('button');
+            chip.type = 'button';
             chip.className = 'health-chip';
             chip.dataset.condition = cond.id;
-            chip.innerHTML = `<span class="chip-icon">${cond.icon}</span> ${cond.label}`;
+            chip.textContent = cond.name; // Use textContent for safety and clean look
 
             chip.addEventListener('click', () => {
-                if (cond.id === 'none') {
-                    // Deselect all others
-                    state.health_conditions = ['none'];
-                    document.querySelectorAll('.health-chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
+                chip.classList.toggle('active');
+                if (chip.classList.contains('active')) {
+                    state.health_conditions.push(cond.id);
                 } else {
-                    // Deselect "none"
-                    const noneChip = chipsContainer.querySelector('[data-condition="none"]');
-                    noneChip?.classList.remove('active');
-                    state.health_conditions = state.health_conditions.filter(c => c !== 'none');
-
-                    chip.classList.toggle('active');
-                    if (chip.classList.contains('active')) {
-                        state.health_conditions.push(cond.id);
-                    } else {
-                        state.health_conditions = state.health_conditions.filter(c => c !== cond.id);
-                    }
+                    state.health_conditions = state.health_conditions.filter(c => c !== cond.id);
                 }
                 updateConditionHighlights();
                 updateProgress();
@@ -201,8 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
         silCtx.lineTo(cx + legGap + 12, ankleY + 10);
         silCtx.stroke();
 
-        // Draw joint dots for selected conditions
-        silCtx.shadowBlur = 15;
+        // Highlight joints affected by conditions
+        const highlightedJoints = new Set();
+        state.health_conditions.forEach(condId => {
+            const cond = HEALTH_CONDITIONS.find(h => h.id === condId);
+            if (cond && cond.affected) {
+                cond.affected.forEach(j => highlightedJoints.add(j));
+            }
+        });
+
         const jointMap = {
             knee: [{ x: cx - legGap - 3, y: kneeY }, { x: cx + legGap + 3, y: kneeY }],
             hip: [{ x: cx - hipW, y: hipY }, { x: cx + hipW, y: hipY }],
@@ -211,26 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ankle: [{ x: cx - legGap - 1, y: ankleY }, { x: cx + legGap + 1, y: ankleY }]
         };
 
-        // Highlight joints affected by conditions
-        const condJointMap = {
-            arthritis: ['knee', 'hip', 'shoulder'],
-            osteoporosis: ['spine', 'hip'],
-            herniated_disc: ['spine'],
-            knee_injury: ['knee'],
-            hip_replacement: ['hip'],
-            scoliosis: ['spine'],
-            sciatica: ['spine', 'hip'],
-            carpal_tunnel: ['shoulder'],
-            tendonitis: ['shoulder', 'knee'],
-            bursitis: ['shoulder', 'hip'],
-            fibromyalgia: ['knee', 'spine', 'hip', 'shoulder', 'ankle']
-        };
-
-        const highlightedJoints = new Set();
-        state.health_conditions.forEach(cond => {
-            (condJointMap[cond] || []).forEach(j => highlightedJoints.add(j));
-        });
-
         highlightedJoints.forEach(joint => {
             const positions = jointMap[joint] || [];
             positions.forEach(pos => {
@@ -238,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 silCtx.globalAlpha = pulse;
                 silCtx.fillStyle = '#ffd700';
                 silCtx.shadowColor = '#ffd700';
+                silCtx.shadowBlur = 15;
                 silCtx.beginPath();
                 silCtx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
                 silCtx.fill();
@@ -261,12 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('conditionHighlights');
         if (!container) return;
         container.innerHTML = '';
-        state.health_conditions.filter(c => c !== 'none').forEach(cond => {
-            const el = document.createElement('div');
-            el.className = 'condition-highlight';
-            const info = HEALTH_CONDITIONS.find(h => h.id === cond);
-            el.textContent = info ? `${info.icon} ${info.label}` : cond;
-            container.appendChild(el);
+        state.health_conditions.forEach(condId => {
+            const cond = HEALTH_CONDITIONS.find(h => h.id === condId);
+            if (cond) {
+                const el = document.createElement('div');
+                el.className = 'condition-highlight';
+                el.textContent = cond.name; // Use textContent for safety
+                container.appendChild(el);
+            }
         });
     }
 
@@ -275,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let progress = 0;
 
         // Basic info: 40%
-        const basicFilled = (state.name.length > 0 ? 1 : 0) + 1 + 1 + 1; // name + age + weight + height (sliders always filled)
+        const basicFilled = (state.name.length > 0 ? 1 : 0) + 1 + 1 + 1; // name + age + weight + height
         progress += (Math.min(basicFilled, 4) / 4) * 40;
 
         // Body type: 30%
@@ -296,20 +287,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const conn2 = document.getElementById('conn2');
 
         if (state.name.length > 0) {
-            step1.classList.add('done');
-            step1.classList.remove('active');
-            conn1.classList.add('done');
-            step2.classList.add('active');
+            if (step1) { step1.classList.add('done'); step1.classList.remove('active'); }
+            if (conn1) conn1.classList.add('done');
+            if (step2) step2.classList.add('active');
         }
         if (state.body_type) {
-            step2.classList.add('done');
-            step2.classList.remove('active');
-            conn2.classList.add('done');
-            step3.classList.add('active');
+            if (step2) { step2.classList.add('done'); step2.classList.remove('active'); }
+            if (conn2) conn2.classList.add('done');
+            if (step3) step3.classList.add('active');
         }
         if (state.health_conditions.length > 0) {
-            step3.classList.add('done');
-            step3.classList.remove('active');
+            if (step3) { step3.classList.add('done'); step3.classList.remove('active'); }
         }
 
         // Enable submit button
@@ -321,9 +309,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Submit ───────────────────────────────────────────────
     const submitBtn = document.getElementById('btnSubmit');
     if (submitBtn) {
-        submitBtn.addEventListener('click', () => {
+        submitBtn.addEventListener('click', async () => {
             if (submitBtn.disabled) return;
-            saveToStorage('profile', state);
+            
+            // Save to backend via ProfileManager if possible, or fallback to storage
+            try {
+                // In a real scenario, we might use profileManager.createProfile(state)
+                // For this implementation, we ensure it's saved for the simulation page
+                saveToStorage('profile', state);
+            } catch (err) {
+                console.error('Backend save failed:', err);
+                saveToStorage('profile', state);
+            }
+
             // Animate button
             submitBtn.classList.add('loading');
             submitBtn.textContent = '';

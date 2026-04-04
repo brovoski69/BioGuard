@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BioGuard — Virtual Joint Stress Simulator</title>
     <meta name="description" content="Know your joints. Protect your future. BioGuard simulates joint stress across real-life scenarios to help you stay healthy.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
     <div class="page-wrapper">
+        <noscript>
+            <div style="text-align:center; padding:40px; background:#0a0f1e; color:#e8e0d0;">
+                BioGuard requires JavaScript. Please enable it in your browser.
+            </div>
+        </noscript>
 
         <!-- PARTICLE CANVAS -->
         <canvas id="particleCanvas"></canvas>
@@ -30,104 +36,105 @@
             </ul>
         </nav>
 
-        <!-- HERO SECTION -->
-        <section class="hero" id="hero">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <span class="pulse-dot"></span>
-                    VIRTUAL BIOMECHANICS LAB
+        <main>
+            <!-- HERO SECTION -->
+            <section class="hero" id="hero">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="pulse-dot"></span>
+                        VIRTUAL BIOMECHANICS LAB
+                    </div>
+                    <h1 class="hero-title" data-text="BIOGUARD">BIOGUARD</h1>
+                    <p class="hero-tagline">Know your joints. Protect your future.</p>
+                    <div class="hero-cta">
+                        <a href="profile.html" class="btn btn-primary" id="btnStartSim">
+                            ▶ Start Simulation
+                        </a>
+                        <a href="simulation.html?demo=true" class="btn btn-outline" id="btnViewDemo">
+                            ◉ View Demo
+                        </a>
+                    </div>
                 </div>
-                <h1 class="hero-title" data-text="BIOGUARD">BIOGUARD</h1>
-                <p class="hero-tagline">Know your joints. Protect your future.</p>
-                <div class="hero-cta">
-                    <a href="profile.html" class="btn btn-primary" id="btnStartSim">
-                        ▶ Start Simulation
-                    </a>
-                    <a href="simulation.html?demo=true" class="btn btn-outline" id="btnViewDemo">
-                        ◉ View Demo
-                    </a>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- FEATURES SECTION -->
-        <section class="features-section" id="features">
-            <div class="features-grid" id="featuresGrid">
-                <div class="feature-card">
-                    <span class="feature-icon">🦴</span>
-                    <h3 class="feature-title">3D Joint Visualization</h3>
-                    <p class="feature-desc">Interactive wireframe skeleton with real-time stress coloring. See exactly which joints are under pressure.</p>
+            <!-- FEATURES SECTION -->
+            <section class="features-section" id="features">
+                <div class="features-grid" id="featuresGrid">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern joint"></div></div>
+                        <h3 class="feature-title">3D Joint Visualization</h3>
+                        <p class="feature-desc">Interactive wireframe skeleton with real-time stress coloring. See exactly which joints are under pressure.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern physics"></div></div>
+                        <h3 class="feature-title">Real-Time Physics</h3>
+                        <p class="feature-desc">Biomechanical force calculations based on your body profile, posture angles, and external loads.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern risk"></div></div>
+                        <h3 class="feature-title">Risk Assessment</h3>
+                        <p class="feature-desc">Joint-by-joint risk scoring with actionable recommendations. Track your long-term joint health projections.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern scenario"></div></div>
+                        <h3 class="feature-title">12 Life Scenarios</h3>
+                        <p class="feature-desc">From desk sitting to heavy lifting — simulate the activities you do every day and understand their impact.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern fixit"></div></div>
+                        <h3 class="feature-title">Fix-It Mode</h3>
+                        <p class="feature-desc">See what correct posture looks like with ghost overlays and guided correction arrows on the 3D model.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrap"><div class="feature-icon-modern report"></div></div>
+                        <h3 class="feature-title">Detailed Reports</h3>
+                        <p class="feature-desc">Generate comprehensive health reports with long-term projections and personalized recommendations.</p>
+                    </div>
                 </div>
-                <div class="feature-card">
-                    <span class="feature-icon">⚡</span>
-                    <h3 class="feature-title">Real-Time Physics</h3>
-                    <p class="feature-desc">Biomechanical force calculations based on your body profile, posture angles, and external loads.</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">📊</span>
-                    <h3 class="feature-title">Risk Assessment</h3>
-                    <p class="feature-desc">Joint-by-joint risk scoring with actionable recommendations. Track your long-term joint health projections.</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">🏃</span>
-                    <h3 class="feature-title">12 Life Scenarios</h3>
-                    <p class="feature-desc">From desk sitting to heavy lifting — simulate the activities you do every day and understand their impact.</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">🔧</span>
-                    <h3 class="feature-title">Fix-It Mode</h3>
-                    <p class="feature-desc">See what correct posture looks like with ghost overlays and guided correction arrows on the 3D model.</p>
-                </div>
-                <div class="feature-card">
-                    <span class="feature-icon">📋</span>
-                    <h3 class="feature-title">Detailed Reports</h3>
-                    <p class="feature-desc">Generate comprehensive health reports with long-term projections and personalized recommendations.</p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- HOW IT WORKS -->
-        <section class="how-section" id="how-it-works">
-            <h2>HOW IT WORKS</h2>
-            <div class="how-steps">
-                <div class="how-step">
-                    <div class="how-step-num">1</div>
-                    <h4 class="how-step-title">Build Your Profile</h4>
-                    <p class="how-step-desc">Enter your age, weight, height, body type, and health conditions for personalized analysis.</p>
+            <!-- HOW IT WORKS -->
+            <section class="how-section" id="how-it-works">
+                <h2>HOW IT WORKS</h2>
+                <div class="how-steps">
+                    <div class="how-step">
+                        <div class="how-step-num">1</div>
+                        <h4 class="how-step-title">Build Your Profile</h4>
+                        <p class="how-step-desc">Enter your age, weight, height, body type, and health conditions for personalized analysis.</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-step-num">2</div>
+                        <h4 class="how-step-title">Pick a Scenario</h4>
+                        <p class="how-step-desc">Choose from 12 real-life activities or customize your own posture angles and load weight.</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-step-num">3</div>
+                        <h4 class="how-step-title">Run Simulation</h4>
+                        <p class="how-step-desc">Watch the 3D skeleton light up with force vectors and risk scores in real-time.</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-step-num">4</div>
+                        <h4 class="how-step-title">Get Your Report</h4>
+                        <p class="how-step-desc">Receive a full joint health report with long-term projections and corrective recommendations.</p>
+                    </div>
                 </div>
-                <div class="how-step">
-                    <div class="how-step-num">2</div>
-                    <h4 class="how-step-title">Pick a Scenario</h4>
-                    <p class="how-step-desc">Choose from 12 real-life activities or customize your own posture angles and load weight.</p>
-                </div>
-                <div class="how-step">
-                    <div class="how-step-num">3</div>
-                    <h4 class="how-step-title">Run Simulation</h4>
-                    <p class="how-step-desc">Watch the 3D skeleton light up with force vectors and risk scores in real-time.</p>
-                </div>
-                <div class="how-step">
-                    <div class="how-step-num">4</div>
-                    <h4 class="how-step-title">Get Your Report</h4>
-                    <p class="how-step-desc">Receive a full joint health report with long-term projections and corrective recommendations.</p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ABOUT -->
-        <section id="about" style="position:relative; z-index:2; text-align:center; padding:60px 24px 80px;">
-            <h2 style="font-family:var(--font-display); color:var(--accent-cyan); letter-spacing:3px; margin-bottom:16px; text-shadow:0 0 20px rgba(0,245,255,0.3);">ABOUT BIOGUARD</h2>
-            <p style="max-width:650px; margin:0 auto; color:var(--text-dim); line-height:1.8; font-size:14px;">
-                BioGuard is a virtual biomechanics laboratory that simulates joint stress across everyday activities.
-                By combining your unique body profile with physics-based force models, we calculate real-time risk scores
-                for each major joint — helping you make informed decisions about your physical activities and long-term joint health.
-            </p>
-        </section>
+            <!-- ABOUT -->
+            <section id="about" style="position:relative; z-index:2; text-align:center; padding:60px 24px 80px;">
+                <h2 style="font-family:var(--font-display); color:var(--accent-cyan); letter-spacing:3px; margin-bottom:16px; text-shadow:0 0 20px rgba(0, 245, 255, 0.3);">ABOUT BIOGUARD</h2>
+                <p style="max-width:650px; margin:0 auto; color:var(--text-dim); line-height:1.8; font-size:14px;">
+                    BioGuard is a virtual biomechanics laboratory that simulates joint stress across everyday activities.
+                    By combining your unique body profile with physics-based force models, we calculate real-time risk scores
+                    for each major joint — helping you make informed decisions about your physical activities and long-term joint health.
+                </p>
+            </section>
+        </main>
 
         <!-- FOOTER -->
         <footer class="landing-footer">
             BIOGUARD © 2026 — FOR EDUCATIONAL PURPOSES ONLY
         </footer>
-
     </div>
 
     <script type="module" src="js/pages/landing.js"></script>

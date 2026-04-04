@@ -6,9 +6,9 @@
 import SimulationRenderer from '../classes/SimulationRenderer.js';
 import UIController from '../classes/UIController.js';
 import ChartManager from '../classes/ChartManager.js';
-import ScenarioLoader from '../classes/ScenarioLoader.js';
-import PhysicsEngine from '../classes/PhysicsEngine.js';
 import AnimationManager from '../classes/AnimationManager.js';
+import PhysicsEngine from '../classes/PhysicsEngine.js';
+import ScenarioLoader from '../classes/ScenarioLoader.js';
 import { JOINTS, JOINT_LABELS } from '../utils/constants.js';
 import { loadFromStorage, saveToStorage, getRiskColor, formatForce } from '../utils/helpers.js';
 
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
             weight: 75,
             height: 175,
             body_type: 'mesomorph',
-            health_conditions: ['none']
+            health_conditions: []
         };
     }
 
@@ -67,37 +67,85 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('3D renderer init failed:', e);
             renderer = null;
         }
-    } else if (container3d) {
-        // Three.js not loaded — show fallback
-        container3d.innerHTML = `
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;opacity:0.5;">
-                <div style="font-size:64px;">🦴</div>
-                <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-dim);text-align:center;">
-                    3D VIEWER<br>
-                    <span style="font-size:10px;">Three.js library loading...</span>
-                </div>
-            </div>
-        `;
     }
 
     // ── Initialize Scenario Cards ────────────────────────────
     const scenarioList = document.getElementById('scenarioList');
     const scenarios = scenarioLoader.getAllScenarios();
-    ui.initScenarioCards(scenarios, scenarioList);
+    
+    // Use Fix #2: Safe card generation (XSS)
+    const updateScenarioCards = (items) => {
+        if (!scenarioList) return;
+        scenarioList.innerHTML = '';
+        items.forEach(scenario => {
+            const card = document.createElement('div');
+            card.className = 'scenario-card';
+            card.dataset.id = scenario.id;
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+
+            const icon = document.createElement('div');
+            icon.className = 'scenario-icon';
+            icon.textContent = scenario.icon;
+
+            const info = document.createElement('div');
+            info.className = 'scenario-info';
+            
+            const name = document.createElement('div');
+            name.className = 'scenario-name';
+            name.textContent = scenario.name;
+
+            const cat = document.createElement('div');
+            cat.className = 'scenario-category';
+            cat.textContent = scenario.category;
+
+            info.appendChild(name);
+            info.appendChild(cat);
+            card.appendChild(icon);
+            card.appendChild(info);
+            
+            card.addEventListener('click', () => onScenarioSelect(scenario.id));
+            card.addEventListener('keydown', (e) => { if(e.key === 'Enter') onScenarioSelect(scenario.id); });
+            
+            scenarioList.appendChild(card);
+        });
+    };
+
+    updateScenarioCards(scenarios);
 
     // ── Initialize Category Filters ──────────────────────────
+    // Fix #9: Bind select once, use delegation
     const filterContainer = document.getElementById('categoryFilters');
-    ui.initFilterPills(scenarioLoader.getCategories(), filterContainer, (category) => {
-        const filtered = scenarioLoader.filterByCategory(category);
-        ui.initScenarioCards(filtered, scenarioList);
-        // Re-bind scenario select
-        ui.onScenarioSelect = onScenarioSelect;
-    });
+    const categories = scenarioLoader.getCategories();
+    
+    if (filterContainer) {
+        categories.forEach(cat => {
+            const pill = document.createElement('button');
+            pill.className = `filter-pill ${cat.id === 'all' ? 'active' : ''}`;
+            pill.textContent = cat.label.toUpperCase();
+            pill.dataset.category = cat.id;
+            
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                
+                const filtered = scenarioLoader.filterByCategory(cat.id);
+                updateScenarioCards(filtered);
+            });
+            filterContainer.appendChild(pill);
+        });
+    }
 
     // ── Scenario Selection Handler ───────────────────────────
     function onScenarioSelect(scenarioId) {
-        currentScenario = scenarioLoader.loadScenario(scenarioId);
-        if (!currentScenario) return;
+        const scenario = scenarioLoader.loadScenario(scenarioId);
+        if (!scenario) return;
+        currentScenario = scenario;
+
+        // Update active card state
+        document.querySelectorAll('.scenario-card').forEach(c => {
+            c.classList.toggle('active', c.dataset.id === scenarioId);
+        });
 
         // Update HUD
         document.getElementById('hudIcon').textContent = currentScenario.icon;
@@ -116,11 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Auto-run simulation
         runSimulation();
     }
-    ui.onScenarioSelect = onScenarioSelect;
 
     // ── Initialize Sliders ───────────────────────────────────
     ui.initSliders();
-    ui.onSliderChange = (sliderId, value) => {
+    ui.onSliderChange = () => {
         const runBtn = document.getElementById('runSimBtn');
         if (runBtn) runBtn.classList.add('pulse-ready');
     };
@@ -144,13 +191,27 @@ document.addEventListener('DOMContentLoaded', () => {
         JOINTS.forEach(joint => {
             const row = document.createElement('div');
             row.className = 'joint-risk-row';
-            row.innerHTML = `
-                <div class="joint-risk-name">${JOINT_LABELS[joint]}</div>
-                <div class="joint-risk-bar">
-                    <div class="joint-risk-fill" id="risk-${joint}" style="width:0%"></div>
-                </div>
-                <div class="joint-risk-val" id="riskval-${joint}">0</div>
-            `;
+            
+            const name = document.createElement('div');
+            name.className = 'joint-risk-name';
+            name.textContent = JOINT_LABELS[joint];
+            
+            const bar = document.createElement('div');
+            bar.className = 'joint-risk-bar';
+            const fill = document.createElement('div');
+            fill.className = 'joint-risk-fill';
+            fill.id = `risk-${joint}`;
+            fill.style.width = '0%';
+            bar.appendChild(fill);
+            
+            const val = document.createElement('div');
+            val.className = 'joint-risk-val';
+            val.id = `riskval-${joint}`;
+            val.textContent = '0';
+            
+            row.appendChild(name);
+            row.appendChild(bar);
+            row.appendChild(val);
             jointRisksContainer.appendChild(row);
         });
     }
@@ -162,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadWeight = formData.loadWeight;
         const duration = formData.duration;
 
-        // Run physics
+        // Run backend physics
         const analysis = physics.getFullAnalysis(angles, loadWeight, duration);
         lastAnalysis = analysis;
 
@@ -211,13 +272,30 @@ document.addEventListener('DOMContentLoaded', () => {
             warningsContainer.innerHTML = '';
             JOINTS.forEach(joint => {
                 if (analysis.riskScores[joint] >= 70) {
-                    ui.showWarning(
-                        warningsContainer,
-                        JOINT_LABELS[joint],
-                        `High stress detected (${analysis.riskScores[joint]}%). Consider reducing activity duration or modifying posture.`
-                    );
+                    // Use textContent for safety (XSS)
+                    const card = document.createElement('div');
+                    card.className = 'warning-card';
+                    
+                    const content = document.createElement('div');
+                    content.className = 'warning-content';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'warning-title';
+                    title.textContent = JOINT_LABELS[joint];
+                    
+                    const text = document.createElement('div');
+                    text.className = 'warning-text';
+                    text.textContent = `High stress detected (${analysis.riskScores[joint]}%). Consider reducing activity duration or modifying posture.`;
+                    
+                    content.appendChild(title);
+                    content.appendChild(text);
+                    card.appendChild(content);
+                    warningsContainer.appendChild(card);
                 }
             });
+            if (warningsContainer.innerHTML === '') {
+                warningsContainer.innerHTML = '<div class="empty-state">No critical stress detected.</div>';
+            }
         }
 
         // ── Remove pulse from run button ─────────────────────
@@ -243,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fixitBtn.addEventListener('click', () => {
             fixitBtn.classList.toggle('active');
             if (renderer) {
-                renderer.enableFixItMode(fixitBtn.classList.contains('active'));
+                renderer.updateFixItMode(fixitBtn.classList.contains('active'));
             }
         });
     }
@@ -257,37 +335,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Mobile Tab System ────────────────────────────────────
     const tabs = document.querySelectorAll('.sim-tab');
-    const panels = {
-        controls: document.getElementById('panelControls'),
-        viewer: document.getElementById('panelViewer'),
-        dashboard: document.getElementById('panelDashboard')
-    };
-
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-
-            Object.values(panels).forEach(p => {
-                if (p) p.classList.remove('mobile-visible');
+            
+            const panelId = tab.dataset.panel;
+            document.querySelectorAll('.sim-left, .sim-center, .sim-right').forEach(p => {
+                p.classList.remove('mobile-visible');
             });
-
-            const target = panels[tab.dataset.panel];
+            
+            const target = document.getElementById(`panel${panelId.charAt(0).toUpperCase() + panelId.slice(1)}`);
             if (target) target.classList.add('mobile-visible');
-
-            // Resize renderer when switching to viewer tab
-            if (tab.dataset.panel === 'viewer' && renderer) {
-                setTimeout(() => renderer._onResize(), 100);
-            }
         });
     });
 
     // ── Auto-run demo if demo mode ───────────────────────────
     if (isDemo) {
         setTimeout(() => {
-            // Select first scenario
-            const firstCard = document.querySelector('.scenario-card');
-            if (firstCard) firstCard.click();
+            onScenarioSelect('sitting_desk');
         }, 500);
     }
 });

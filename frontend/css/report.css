@@ -75,7 +75,9 @@
     border-radius: var(--radius-lg);
     padding: 28px;
     margin-bottom: 24px;
-    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.6s ease backwards;

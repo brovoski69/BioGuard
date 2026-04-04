@@ -150,17 +150,34 @@ export default class UIController {
     // ── Show Warning ─────────────────────────────────────────
     showWarning(container, joint, message) {
         if (!container) return;
-        const card = createElement('div', {
-            className: 'warning-card',
-            innerHTML: `
-                <div class="warning-icon">⚠️</div>
-                <div class="warning-content">
-                    <div class="warning-title">${joint}</div>
-                    <div class="warning-text">${message}</div>
-                </div>
-                <button class="warning-close" onclick="this.closest('.warning-card').remove()">✕</button>
-            `
-        });
+        const card = document.createElement('div');
+        card.className = 'warning-card';
+        
+        const icon = document.createElement('div');
+        icon.className = 'warning-icon';
+        icon.textContent = '⚠️';
+        
+        const content = document.createElement('div');
+        content.className = 'warning-content';
+        
+        const title = document.createElement('div');
+        title.className = 'warning-title';
+        title.textContent = joint; // Safe
+        
+        const text = document.createElement('div');
+        text.className = 'warning-text';
+        text.textContent = message; // Safe
+        
+        const close = document.createElement('button');
+        close.className = 'warning-close';
+        close.textContent = '✕';
+        close.onclick = () => card.remove();
+        
+        content.appendChild(title);
+        content.appendChild(text);
+        card.appendChild(icon);
+        card.appendChild(content);
+        card.appendChild(close);
 
         container.prepend(card);
 
